@@ -462,6 +462,15 @@ th.periodo-header {
     <textarea id="observaciones" rows="3" class="hover-dorado" placeholder="Escribe aquí cualquier observación adicional..."></textarea>
   </div>
 
+  <div class="form-section" id="tipoPagoContainer" style="display:none;">
+  <label for="tipoPago">Tipo de pago:</label>
+  <select id="tipoPago">
+    <option value="">Seleccionar...</option>
+    <option value="trimestral">Trimestral</option>
+    <option value="semestral">Semestral</option>
+  </select>
+</div>
+
   <div class="totales">
     <p>Subtotal: $<span id="subtotalGeneral">0.00</span></p>
     <p>Descuento: <input type="number" id="descuento" class="hover-dorado" value="0"> %</p>
@@ -476,7 +485,7 @@ th.periodo-header {
   </div>
 </div>
 
-<div class="acciones" style="text-align:center; margin-top: 15px;padding-bottom: 20px;">
+<div class="acciones" style="text-align:center; margin-top: 15px;">
   <button class="btn" id="btnPDF">Generar PDF</button>
   <button class="btn" id="btnLimpiar">Nueva Cotización</button>
 </div>
@@ -846,7 +855,64 @@ if (productosPeriodoMesAnio.includes(productoSeleccionado) || productosSoloAnio.
     const descuento = parseFloat(document.getElementById("descuento").value) || 0;
     const total = subtotal*(1-(descuento/100));
     document.getElementById("totalGeneral").textContent = total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+    calcularPagosProporcionales(total);
   }
+
+  // 🔁 Detectar cambio en el tipo de pago y recalcular
+  document.getElementById("tipoPago").addEventListener("change", () => {
+  const totalGeneral = parseFloat(document.getElementById("totalGeneral").textContent.replace(/[^\d.-]/g,'')) || 0;
+  calcularPagosProporcionales(totalGeneral);
+});
+
+// === FUNCIÓN FINAL PARA PAGOS DIFERIDOS ===
+  function calcularPagosProporcionales(total) {
+  const tipoPagoContainer = document.getElementById('tipoPagoContainer');
+  const tipoPagoSelect = document.getElementById('tipoPago');
+  const descuentoInput = document.getElementById('descuento'); // Ajusta si tu campo tiene otro ID
+  let pagosDiv = document.getElementById('pagosProporcionales');
+
+  // Crear div si no existe
+  if (!pagosDiv) {
+    pagosDiv = document.createElement('div');
+    pagosDiv.id = 'pagosProporcionales';
+    document.querySelector('.totales').appendChild(pagosDiv);
+  }
+
+  // Mostrar/ocultar selector según monto
+  if (total > 3000) {
+    tipoPagoContainer.style.display = 'block';
+  } else {
+    tipoPagoContainer.style.display = 'none';
+    pagosDiv.innerHTML = '';
+    tipoPagoSelect.value = "";
+    if (descuentoInput) descuentoInput.disabled = false;
+    return;
+  }
+
+  const tipoPago = tipoPagoSelect.value;
+
+  // Si no seleccionó nada, limpiar
+  if (!tipoPago) {
+    pagosDiv.innerHTML = '';
+    if (descuentoInput) descuentoInput.disabled = false;
+    return;
+  }
+
+  // Deshabilitar descuento cuando aplica parcialización
+  if (descuentoInput) descuentoInput.disabled = true;
+
+  // Calcular número de pagos
+  let numPagos = (tipoPago === 'trimestral') ? 4 : 2;
+
+  const pagoParcial = (total / numPagos).toFixed(2);
+  let html = `<h4>Pagos ${tipoPago.charAt(0).toUpperCase() + tipoPago.slice(1)}:</h4>`;
+  for (let i = 1; i <= numPagos; i++) {
+    html += `<p>Pago ${i}: $${pagoParcial}</p>`;
+  }
+  html += `<strong>Total: $${total.toFixed(2)}</strong>`;
+
+  pagosDiv.innerHTML = html;
+}
 
  function mostrarColumnaPeriodo(mostrar) {
   const tabla = document.getElementById("tablaServicios");
@@ -913,6 +979,7 @@ function mostrarMensajeUX(texto) {
     setTimeout(() => msg.remove(), 400);
   }, 1500);
 }
+
   // --- Limpiar formulario ---
   document.getElementById("btnLimpiar").addEventListener("click", function(){
   document.getElementById("clienteNombre").value = "";
@@ -1114,7 +1181,7 @@ doc.autoTable({
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.text(observaciones || " ", 10, y + 5, { maxWidth: 120 });
-
+  
   doc.setFont("helvetica", "normal");
   doc.text(`SUBTOTAL: $${subtotalGeneral.toFixed(2)}`, 140, y);
   y += 5;
@@ -1122,6 +1189,35 @@ doc.autoTable({
   y += 5;
   doc.setFont("helvetica", "bold");
   doc.text(`TOTAL: $${totalGeneral.toFixed(2)}`, 140, y);
+
+  // === BLOQUE PARA PAGOS DIFERIDOS (TRIMESTRAL / SEMESTRAL) ===
+const tipoPagoSelect = document.getElementById('tipoPago');
+const tipoPago = tipoPagoSelect ? tipoPagoSelect.value : "";
+
+if (totalGeneral > 3000 && tipoPago) {
+  let numPagos = (tipoPago === 'trimestral') ? 4 : 2;
+  const pagoParcial = (totalGeneral / numPagos).toFixed(2);
+
+  // Asegura que se escriba debajo de la tabla (autoTable)
+  let yActual = (doc.lastAutoTable && doc.lastAutoTable.finalY)
+    ? doc.lastAutoTable.finalY + 20
+    : 140;
+
+  // Título de la sección de pagos
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text(`Pagos ${tipoPago.charAt(0).toUpperCase() + tipoPago.slice(1)}:`, 14, yActual);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+
+  // Detalle de los pagos
+  for (let i = 1; i <= numPagos; i++) {
+    doc.text(`Pago ${i}: $${pagoParcial}`, 20, yActual + (i * 6));
+  }
+
+  // ✅ Actualizamos posición global "y" para evitar que se encimen las leyendas
+  y = yActual + (numPagos * 6) + 15;
+}
 
   // === Leyendas ===
   y += 15;
@@ -1147,4 +1243,5 @@ doc.autoTable({
 </script>
 </body>
 </html>
+
 
