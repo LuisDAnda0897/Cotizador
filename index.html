@@ -884,6 +884,11 @@ const validarRangoPeriodo = () => {
     tdPrecio.textContent = precio.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
     calcularTotal();
 });
+    document.addEventListener("change", function (e) {
+    if (e.target.matches(".select-mes, .inicio-mes, .fin-mes, .select-anio, .inicio-anio, .fin-anio")) {
+    calcularPagosProporcionales();
+  }
+});
   }
   document.getElementById("btnAgregarServicio").addEventListener("click", agregarFila);
   document.getElementById("descuento").addEventListener("input", calcularTotal);
@@ -1506,5 +1511,6 @@ if (window._bloquesPago?.length) {
 </script>
 </body>
 </html>
+
 
 
