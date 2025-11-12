@@ -50,7 +50,7 @@ header img {
 header .info-empresa {
   text-align: left;
   font-size: 0.85em;
-  color: var(--dorado-oscuro);
+  color: #333;
   line-height: 1;
   flex: 1;
 }
@@ -75,6 +75,19 @@ h1 {
   margin-top: 15px;
 }
 
+  header .info-empresa h2 {
+  margin: 0;              /* elimina espacio arriba y abajo */
+  line-height: 1.1;       /* junta más las líneas */
+  color: var(--dorado-oscuro);
+  font-size: 25px
+}
+
+header .info-empresa p {
+  margin: 0;
+  line-height: 1.1;
+  font-size: 15px
+}
+  
 .form-section h3 {
   color: var(--dorado-oscuro);
   margin-bottom: 8px;
@@ -276,7 +289,7 @@ th.periodo-header {
 
 /* Pequeños ajustes en filas y botones */
 #tablaServicios tbody tr:hover {
-  background-color: #fff9f1;
+  background-color: #8d8b89;
   transition: background-color 0.2s;
 }
 
@@ -1507,6 +1520,7 @@ if (window._bloquesPago?.length) {
 </script>
 </body>
 </html>
+
 
 
 
