@@ -769,11 +769,6 @@ const productosSoloAnio = [
 
   const selects = celdaPeriodo.querySelectorAll(".inicio-mes, .inicio-anio, .fin-mes, .fin-anio");
   selects.forEach(sel => sel.addEventListener("change", verificarRango));
-  const selectsPeriodo = celdaPeriodo.querySelectorAll("select");
-  selectsPeriodo.forEach(sel => {
-  sel.addEventListener("change", () => calcularPagosProporcionales());
-  });
-
   mostrarColumnaPeriodo(true);
 }
 
@@ -884,12 +879,12 @@ const validarRangoPeriodo = () => {
     tdPrecio.textContent = precio.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
     calcularTotal();
 });
-    document.addEventListener("change", function (e) {
-    if (e.target.matches(".select-mes, .inicio-mes, .fin-mes, .select-anio, .inicio-anio, .fin-anio")) {
+  }
+  document.addEventListener("change", function (e) {
+  if (e.target.matches(".select-mes, .inicio-mes, .fin-mes, .select-anio, .inicio-anio, .fin-anio")) {
     calcularPagosProporcionales();
   }
 });
-  }
   document.getElementById("btnAgregarServicio").addEventListener("click", agregarFila);
   document.getElementById("descuento").addEventListener("input", calcularTotal);
 
@@ -1511,6 +1506,7 @@ if (window._bloquesPago?.length) {
 </script>
 </body>
 </html>
+
 
 
 
