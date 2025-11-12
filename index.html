@@ -482,6 +482,7 @@ th.periodo-header {
     <option value="">Seleccionar...</option>
     <option value="trimestral">Trimestral</option>
     <option value="semestral">Semestral</option>
+    <option value="cuatrimestral">Cuatrimestral</option>
   </select>
 </div>
 
@@ -956,7 +957,7 @@ function calcularPagosProporcionales() {
 
   const descuentoInput = document.getElementById("descuento");
 if (descuentoInput) {
-  if (tipoPago === "trimestral" || tipoPago === "semestral") {
+  if (tipoPago === "trimestral" || tipoPago === "semestral" || tipoPago === "cuatrimestral") {
     descuentoInput.disabled = true;
     descuentoInput.title = "El descuento se deshabilita al dividir los pagos";
   } else {
@@ -1141,7 +1142,14 @@ else if (selInicioMes && selInicioAnio && selFinMes && selFinAnio) {
     if (b1.length) bloques.push({ num: 1, items: b1, subtotal: b1.reduce((s, x) => s + x.precio, 0) });
     if (b2.length) bloques.push({ num: 2, items: b2, subtotal: b2.reduce((s, x) => s + x.precio, 0) });
   }
-
+  else if (tipoPago === "cuatrimestral") {
+  // 🟤 Cuatrimestral: dividir en bloques de 4 servicios/meses
+  for (let i = 0; i < items.length; i += 4) {
+    const grupo = items.slice(i, i + 4);
+    const subtotal = grupo.reduce((s, x) => s + x.precio, 0);
+    bloques.push({ num: Math.floor(i / 4) + 1, items: grupo, subtotal });
+  }
+}
   window._bloquesPago = bloques; // lo usa tu PDF
 
   // === Renderizado (alineado a la izquierda y con moneda formateada) ===
@@ -1520,6 +1528,7 @@ if (window._bloquesPago?.length) {
 </script>
 </body>
 </html>
+
 
 
 
