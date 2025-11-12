@@ -477,6 +477,8 @@ th.periodo-header {
     <p><strong>Total: $<span id="totalGeneral">0.00</span></strong></p>
   </div>
 
+  <div id="pagosProporcionales"></div>
+
   <div class="leyendas">
     <p>La presente cotización tiene una vigencia máxima de 20 días naturales a partir de la fecha en la que se elaboró.</p>
     <p>Los costos están sujetos a cambios.</p>
@@ -685,49 +687,38 @@ selectProducto.addEventListener("change", function() {
   celdaPeriodo.classList.add("celda-periodo");
   fila.insertBefore(celdaPeriodo, tdAccion);
 
-  // Función interna para actualizar el contenido del periodo según cantidad
   function actualizarPeriodo() {
     const cantidadActual = parseInt(cantidadInput.value) || 1;
-    celdaPeriodo.innerHTML = "";
+    const esAnual = esPaqueteAnual || esAnualSolo;
 
-    if (esAnualSolo) {
-      // Solo año
+    // --- Construcción dinámica del HTML del periodo ---
+    // Tanto mensual como anual usarán selects de mes y año (inicio y fin) si hay rango o si es anual
+    if (cantidadActual > 1 || esAnual) {
       celdaPeriodo.innerHTML = `
-        <select class="select-anio">
+        <select class="select-mes inicio-mes">
+          ${["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
+            .map((m,i)=>`<option value="${i+1}">${m}</option>`).join('')}
+        </select>
+        <select class="select-anio inicio-anio">
+          ${Array.from({length: (new Date().getFullYear() + 5) - 2020}, (_, i) => 2020 + i)
+            .map(a => `<option value="${a}">${a}</option>`).join('')}
+        </select>
+        <span> — </span>
+        <select class="select-mes fin-mes">
+          ${["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
+            .map((m,i)=>`<option value="${i+1}">${m}</option>`).join('')}
+        </select>
+        <select class="select-anio fin-anio">
           ${Array.from({length: (new Date().getFullYear() + 5) - 2020}, (_, i) => 2020 + i)
             .map(a => `<option value="${a}">${a}</option>`).join('')}
         </select>
       `;
-    } else if (esPaqueteAnual || (esMensual && cantidadActual > 1)) {
-      // Rango de mes/año a mes/año
-      celdaPeriodo.innerHTML = `
-        <div class="periodo-rango">
-          <span>De</span>
-          <select class="select-mes">
-            ${["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
-              .map(m=>`<option value="${m}">${m}</option>`).join('')}
-          </select>
-          <select class="select-anio">
-            ${Array.from({length: (new Date().getFullYear() + 5) - 2020}, (_, i) => 2020 + i)
-              .map(a => `<option value="${a}">${a}</option>`).join('')}
-          </select>
-          <span>a</span>
-          <select class="select-mes">
-            ${["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
-              .map(m=>`<option value="${m}">${m}</option>`).join('')}
-          </select>
-          <select class="select-anio">
-            ${Array.from({length: (new Date().getFullYear() + 5) - 2020}, (_, i) => 2020 + i)
-              .map(a => `<option value="${a}">${a}</option>`).join('')}
-          </select>
-        </div>
-      `;
     } else {
-      // Un solo mes/año
+      // Solo 1 mensual (no anual)
       celdaPeriodo.innerHTML = `
         <select class="select-mes">
           ${["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
-            .map(m=>`<option value="${m}">${m}</option>`).join('')}
+            .map((m,i)=>`<option value="${i+1}">${m}</option>`).join('')}
         </select>
         <select class="select-anio">
           ${Array.from({length: (new Date().getFullYear() + 5) - 2020}, (_, i) => 2020 + i)
@@ -735,6 +726,39 @@ selectProducto.addEventListener("change", function() {
         </select>
       `;
     }
+
+    // --- Validación del rango seleccionado ---
+    function verificarRango() {
+      const inicioMesEl = celdaPeriodo.querySelector(".inicio-mes");
+      const inicioAnioEl = celdaPeriodo.querySelector(".inicio-anio");
+      const finMesEl = celdaPeriodo.querySelector(".fin-mes");
+      const finAnioEl = celdaPeriodo.querySelector(".fin-anio");
+
+      // Solo si hay selects de rango (inicio/fin)
+      if (inicioMesEl && inicioAnioEl && finMesEl && finAnioEl) {
+        const mi = parseInt(inicioMesEl.value);
+        const ai = parseInt(inicioAnioEl.value);
+        const mf = parseInt(finMesEl.value);
+        const af = parseInt(finAnioEl.value);
+
+        // Calcular diferencia total en meses
+        const diferenciaMeses = (af - ai) * 12 + (mf - mi) + 1;
+
+        // Límite: mensual = cantidadActual, anual = 12 * cantidadActual
+        const maxMeses = esAnual ? (12 * cantidadActual) : cantidadActual;
+
+        if (diferenciaMeses <= 0 || diferenciaMeses > maxMeses) {
+          mostrarMensajeUX(`⚠️ El rango seleccionado excede los ${maxMeses} meses permitidos.`);
+          // Restablece fin = inicio para evitar inconsistencias
+          finMesEl.value = inicioMesEl.value;
+          finAnioEl.value = inicioAnioEl.value;
+        }
+      }
+    }
+
+    // Escuchar cambios en los selects relevantes
+    const selects = celdaPeriodo.querySelectorAll(".inicio-mes, .inicio-anio, .fin-mes, .fin-anio");
+    selects.forEach(sel => sel.addEventListener("change", verificarRango));
 
     mostrarColumnaPeriodo(true);
   }
@@ -823,6 +847,15 @@ if (productosPeriodoMesAnio.includes(productoSeleccionado) || productosSoloAnio.
 
   // Insertar tdPeriodo antes de la columna de acción (tdAccion) para que quede penúltima
   fila.insertBefore(tdPeriodo, tdAccion);
+
+  // === 🔍 Validación del rango de periodo según cantidad ===
+const validarRangoPeriodo = () => {
+  const cantidad = parseInt(tdCantidad.querySelector("input").value) || 1;
+  const selectMes = tdPeriodo.querySelector(".select-mes");
+  const selectAnio = tdPeriodo.querySelector(".select-anio");
+
+  if (!selectMes || !selectAnio) return; // aplica solo a los que tienen mes/año
+};
   // Asegurar encabezado 'Periodo' visible
   mostrarColumnaPeriodo(true);
 } else {
@@ -855,63 +888,280 @@ if (productosPeriodoMesAnio.includes(productoSeleccionado) || productosSoloAnio.
     const descuento = parseFloat(document.getElementById("descuento").value) || 0;
     const total = subtotal*(1-(descuento/100));
     document.getElementById("totalGeneral").textContent = total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-    calcularPagosProporcionales(total);
+    // === Mostrar u ocultar selector de tipo de pago ===
+const tipoPagoContainer = document.getElementById("tipoPagoContainer");
+if (tipoPagoContainer) {
+  if (total > 1499) {
+    tipoPagoContainer.style.display = "block";
+  } else {
+    tipoPagoContainer.style.display = "none";
+    document.getElementById("tipoPago").value = "";
+    document.getElementById("pagosProporcionales").innerHTML = "";
+  }
+}
+    calcularPagosProporcionales();
+    const bloquesPago = calcularPagosProporcionales(totalGeneral);
   }
 
   // 🔁 Detectar cambio en el tipo de pago y recalcular
-  document.getElementById("tipoPago").addEventListener("change", () => {
-  const totalGeneral = parseFloat(document.getElementById("totalGeneral").textContent.replace(/[^\d.-]/g,'')) || 0;
-  calcularPagosProporcionales(totalGeneral);
-});
+  (function attachTipoPagoListener(){
+  const tipoPagoSelect = document.getElementById("tipoPago");
+  if (!tipoPagoSelect) return;
+  if (tipoPagoSelect.dataset.listenerAttached) return;
+  tipoPagoSelect.addEventListener("change", () => {
+    const totalGeneral = parseFloat(document.getElementById("totalGeneral").textContent.replace(/[^\d.-]/g,'')) || 0;
+    calcularPagosProporcionales(totalGeneral);
+  });
+  tipoPagoSelect.dataset.listenerAttached = "true";
+})();
 
-// === FUNCIÓN FINAL PARA PAGOS DIFERIDOS ===
-  function calcularPagosProporcionales(total) {
-  const tipoPagoContainer = document.getElementById('tipoPagoContainer');
-  const tipoPagoSelect = document.getElementById('tipoPago');
-  const descuentoInput = document.getElementById('descuento'); // Ajusta si tu campo tiene otro ID
-  let pagosDiv = document.getElementById('pagosProporcionales');
+function calcularPagosProporcionales() {
+  const tipoPago = document.getElementById("tipoPago")?.value || "";
+  const pagosDiv = document.getElementById("pagosProporcionales");
+  const totalGeneral = parseFloat(
+    document.getElementById("totalGeneral").textContent.replace(/[^\d.-]/g, "")
+  ) || 0;
 
-  // Crear div si no existe
-  if (!pagosDiv) {
-    pagosDiv = document.createElement('div');
-    pagosDiv.id = 'pagosProporcionales';
-    document.querySelector('.totales').appendChild(pagosDiv);
-  }
+  pagosDiv.innerHTML = "";
+  window._bloquesPago = [];
+  window._tipoPagoActual = tipoPago;
 
-  // Mostrar/ocultar selector según monto
-  if (total > 3000) {
-    tipoPagoContainer.style.display = 'block';
+  const descuentoInput = document.getElementById("descuento");
+if (descuentoInput) {
+  if (tipoPago === "trimestral" || tipoPago === "semestral") {
+    descuentoInput.disabled = true;
+    descuentoInput.title = "El descuento se deshabilita al dividir los pagos";
   } else {
-    tipoPagoContainer.style.display = 'none';
-    pagosDiv.innerHTML = '';
-    tipoPagoSelect.value = "";
-    if (descuentoInput) descuentoInput.disabled = false;
-    return;
+    descuentoInput.disabled = false;
+    descuentoInput.title = "";
+  }
+}
+
+  if (!tipoPago || totalGeneral <= 1499) return;
+
+  const filas = document.querySelectorAll("#tablaServicios tbody tr");
+  const items = [];
+
+  const meses = [
+    "Enero","Febrero","Marzo","Abril","Mayo","Junio",
+    "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
+  ];
+
+  filas.forEach(tr => {
+    // --- Nombre del servicio (flexible a tus celdas) ---
+    const servicio =
+      tr.querySelector(".colDescripcion")?.textContent.trim() ||
+      tr.querySelector(".colServicio")?.textContent.trim() ||
+      tr.querySelector("select")?.selectedOptions?.[0]?.text?.trim() ||
+      "Servicio";
+
+    // --- Cantidad ---
+    const cantidad = parseInt(tr.querySelector("input[type='number']")?.value) || 1;
+
+    // --- Precio unitario / total: búsqueda robusta ---
+    let precioUnit = NaN;
+    let totalFila = NaN;
+
+    // 1) buscar dataset en celdas (ej: <td data-precio="300">)
+    const anyTd = tr.querySelector("td[data-precio], td[data-price], td[data-precio-unit]");
+    if (anyTd) {
+      precioUnit = parseFloat(anyTd.dataset.precio || anyTd.dataset.price || anyTd.dataset.precioUnit);
+    }
+
+    // 2) buscar inputs con clase o name
+    if (isNaN(precioUnit)) {
+      const inputPrecio = tr.querySelector("input.colPrecio, input[name='precio'], input[data-precio]");
+      if (inputPrecio) precioUnit = parseFloat((inputPrecio.value || "").replace(/[^\d.-]/g, ""));
+    }
+
+    // 3) buscar texto en .colPrecio o similares
+    if (isNaN(precioUnit)) {
+      const tdPrecioText = tr.querySelector(".colPrecio, .precioUnitario, .precio");
+      if (tdPrecioText) precioUnit = parseFloat((tdPrecioText.textContent||"").replace(/[^\d.-]/g, ""));
+    }
+
+    // 4) intentar calcular desde total de fila si existe
+    const tdTotalText = tr.querySelector(".colTotal, .total, td.total");
+    if (tdTotalText) {
+      totalFila = parseFloat((tdTotalText.textContent||"").replace(/[^\d.-]/g, ""));
+      if (isNaN(totalFila)) {
+        const inputTotal = tr.querySelector("input.colTotal, input[name='total']");
+        if (inputTotal) totalFila = parseFloat((inputTotal.value||"").replace(/[^\d.-]/g, ""));
+      }
+    }
+
+    // 5) si tenemos total y cantidad -> precio unitario
+    if (!isNaN(totalFila) && cantidad) {
+      precioUnit = totalFila / cantidad;
+    }
+
+    // 6) fallback: si no detectó nada, buscar primer número en la fila (último recurso)
+    if (isNaN(precioUnit)) {
+      const textoFila = tr.textContent || "";
+      const encontrado = textoFila.match(/(\d{1,3}(?:[\.,]\d{3})*(?:[\.,]\d{2})?)/);
+      if (encontrado) {
+        precioUnit = parseFloat(encontrado[0].replace(/\./g,'').replace(',','.'));
+      } else {
+        precioUnit = 0;
+      }
+    }
+
+    // --- Periodos: preferir selects visibles (inicio/fin) y construir nombres de mes ---
+    const selInicioMes = tr.querySelector(".inicio-mes");
+    const selInicioAnio = tr.querySelector(".inicio-anio");
+    const selFinMes = tr.querySelector(".fin-mes");
+    const selFinAnio = tr.querySelector(".fin-anio");
+
+    let periodos = [];
+
+    if (selInicioMes && selInicioAnio && selFinMes && selFinAnio) {
+      // extraer valores numéricos (algunas veces los option.value son número o string)
+      let im = parseInt(selInicioMes.value);
+      let ia = parseInt(selInicioAnio.value);
+      let fm = parseInt(selFinMes.value);
+      let fa = parseInt(selFinAnio.value);
+
+      // si las opciones traen texto de mes en lugar de value numérico, intentar obtener selectedIndex
+      if (isNaN(im) && selInicioMes.selectedIndex >= 0) im = selInicioMes.selectedIndex + 1;
+      if (isNaN(fm) && selFinMes.selectedIndex >= 0) fm = selFinMes.selectedIndex + 1;
+
+      // construir rango inclusive
+      if (!isNaN(im) && !isNaN(ia) && !isNaN(fm) && !isNaN(fa)) {
+        let m = im, y = ia;
+        while (y < fa || (y === fa && m <= fm)) {
+          const nombre = `${meses[m - 1]} ${y}`;
+          periodos.push(nombre);
+          m++;
+          if (m > 12) { m = 1; y++; }
+        }
+      }
+    }
+
+    // Si no hay selects, intentar tomar texto legible dentro de celdas (.colPeriodo, .periodoText)
+    if (!periodos.length) {
+      const periodoTexto = tr.querySelector(".colPeriodo")?.textContent?.trim() ||
+                           tr.querySelector(".periodoText")?.textContent?.trim();
+      if (periodoTexto) {
+        // si el texto ya trae "Enero 2024" lo usamos; si viene "01/2024" lo convertimos
+        const parts = periodoTexto.split(/[,;\-–]/).map(s => s.trim()).filter(Boolean);
+        if (parts.length === 1 && /\d{1,2}[/\-]\d{2,4}/.test(parts[0])) {
+          // formato como 01/2024 o 1-2024 -> convertir
+          const mY = parts[0].match(/(\d{1,2})[/\-](\d{2,4})/);
+          if (mY) {
+            const mnum = parseInt(mY[1]);
+            const ynum = parseInt(mY[2]);
+            periodos.push(`${meses[mnum - 1]} ${ynum}`);
+          } else {
+            periodos.push(periodoTexto);
+          }
+        } else if (parts.length > 1) {
+          // si hay varios, empujarlos
+          parts.forEach(p => {
+            if (/\d{1,2}[/\-]\d{2,4}/.test(p)) {
+              const mY = p.match(/(\d{1,2})[/\-](\d{2,4})/);
+              if (mY) {
+                const mnum = parseInt(mY[1]);
+                const ynum = parseInt(mY[2]);
+                periodos.push(`${meses[mnum - 1]} ${ynum}`);
+              } else {
+                periodos.push(p);
+              }
+            } else {
+              periodos.push(p);
+            }
+          });
+        } else {
+          periodos.push(periodoTexto);
+        }
+      } else {
+        // No hay periodo: generar "Sin periodo" tantas veces como cantidad
+        for (let i = 0; i < cantidad; i++) periodos.push("Sin periodo");
+      }
+    }
+
+    // si por alguna razón periodos es menor que cantidad, completar con "Sin periodo"
+    while (periodos.length < cantidad) periodos.push("Sin periodo");
+
+    // finalmente, push por cada periodo uno por item
+    periodos.forEach(p => items.push({ servicio, precio: Number(precioUnit) || 0, periodo: p }));
+  });
+
+  if (!items.length) return;
+
+  // === Agrupar en bloques según tipoPago (misma lógica que tenías) ===
+  const bloques = [];
+  if (tipoPago === "trimestral") {
+    for (let i = 0; i < items.length; i += 3) {
+      const grupo = items.slice(i, i + 3);
+      const subtotal = grupo.reduce((s, x) => s + x.precio, 0);
+      bloques.push({ num: Math.floor(i / 3) + 1, items: grupo, subtotal });
+    }
+  } else if (tipoPago === "semestral") {
+    const mitad = Math.ceil(items.length / 2);
+    const b1 = items.slice(0, mitad);
+    const b2 = items.slice(mitad);
+    if (b1.length) bloques.push({ num: 1, items: b1, subtotal: b1.reduce((s, x) => s + x.precio, 0) });
+    if (b2.length) bloques.push({ num: 2, items: b2, subtotal: b2.reduce((s, x) => s + x.precio, 0) });
   }
 
-  const tipoPago = tipoPagoSelect.value;
+  window._bloquesPago = bloques; // lo usa tu PDF
 
-  // Si no seleccionó nada, limpiar
-  if (!tipoPago) {
-    pagosDiv.innerHTML = '';
-    if (descuentoInput) descuentoInput.disabled = false;
-    return;
-  }
+  // === Renderizado (alineado a la izquierda y con moneda formateada) ===
+  let html = `
+    <div style="margin-top:12px;padding:10px;border:1px solid #B98749;border-radius:8px;">
+      <h3 style="color:#B98749;margin-bottom:6px;">Desglose de pagos (${tipoPago})</h3>
+      <table style="width:100%;border-collapse:collapse;text-align:left;">
+        <thead style="background:#B98749;color:white;">
+          <tr>
+            <th style="width:8%;padding:6px 8px;text-align:left;">Bloque</th>
+            <th style="width:72%;padding:6px 8px;text-align:left;">Detalle (Mes / Año)</th>
+            <th style="width:20%;padding:6px 8px;text-align:right;">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
 
-  // Deshabilitar descuento cuando aplica parcialización
-  if (descuentoInput) descuentoInput.disabled = true;
+  let totalGeneralPagos = 0;
+  bloques.forEach(b => {
+    totalGeneralPagos += b.subtotal;
+    // primera fila del bloque
+    html += `
+      <tr>
+        <td rowspan="${b.items.length}" style="vertical-align:middle;padding:6px 8px;font-weight:700;">${b.num}</td>
+        <td style="padding:6px 8px; text-align:left;">${escapeHtml(b.items[0].servicio)} — ${escapeHtml(b.items[0].periodo)} — ${formatCurrency(b.items[0].precio)}</td>
+        <td rowspan="${b.items.length}" style="vertical-align:middle;padding:6px 8px;text-align:right;">${formatCurrency(b.subtotal)}</td>
+      </tr>
+    `;
+    // filas siguientes
+    for (let i = 1; i < b.items.length; i++) {
+      const x = b.items[i];
+      html += `
+        <tr>
+          <td style="padding:6px 8px;">${escapeHtml(x.servicio)} — ${escapeHtml(x.periodo)} — ${formatCurrency(x.precio)}</td>
+        </tr>
+      `;
+    }
+  });
 
-  // Calcular número de pagos
-  let numPagos = (tipoPago === 'trimestral') ? 4 : 2;
-
-  const pagoParcial = (total / numPagos).toFixed(2);
-  let html = `<h4>Pagos ${tipoPago.charAt(0).toUpperCase() + tipoPago.slice(1)}:</h4>`;
-  for (let i = 1; i <= numPagos; i++) {
-    html += `<p>Pago ${i}: $${pagoParcial}</p>`;
-  }
-  html += `<strong>Total: $${total.toFixed(2)}</strong>`;
+  html += `
+        <tr>
+          <td colspan="2" style="text-align:right;padding:6px 8px;font-weight:700;">Total general</td>
+          <td style="text-align:right;padding:6px 8px;font-weight:700;">${formatCurrency(totalGeneralPagos)}</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  `;
 
   pagosDiv.innerHTML = html;
+}
+
+/* helpers */
+function formatCurrency(v) {
+  return Number(v || 0).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+}
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
  function mostrarColumnaPeriodo(mostrar) {
@@ -1019,7 +1269,7 @@ document.getElementById("btnPDF").addEventListener("click", async function () {
   const descuento = parseFloat(document.getElementById("descuento").value) || 0;
   const subtotalGeneral = parseFloat(document.getElementById("subtotalGeneral").textContent.replace(/[^\d.-]/g,'')) || 0;
   const totalGeneral = parseFloat(document.getElementById("totalGeneral").textContent.replace(/[^\d.-]/g,'')) || 0;
-
+  calcularPagosProporcionales(totalGeneral);
   // === Fondo con logo derecho grande y translúcido ===
   if (logoDerecho) {
     doc.setGState(new doc.GState({ opacity: 0.12 })); // transparencia ligera
@@ -1116,19 +1366,18 @@ document.querySelectorAll("#tablaServicios tbody tr").forEach(tr => {
     const selectsAnio = celPeriodo.querySelectorAll(".select-anio");
 
     if (selectsMes.length === 2 && selectsAnio.length === 2) {
-      // Caso: rango de mes/año a mes/año
-      const mesInicio = selectsMes[0].value;
-      const anioInicio = selectsAnio[0].value;
-      const mesFin = selectsMes[1].value;
-      const anioFin = selectsAnio[1].value;
-      periodoValor = `De ${mesInicio} ${anioInicio} a ${mesFin} ${anioFin}`;
-    } else if (selectsMes.length === 1 && selectsAnio.length === 1) {
-      // Caso: un solo mes y año
-      periodoValor = `${selectsMes[0].value} ${selectsAnio[0].value}`;
-    } else if (selectsAnio.length === 1 && selectsMes.length === 0) {
-      // Caso: solo año
-      periodoValor = `${selectsAnio[0].value}`;
-    }
+  const mesInicio = selectsMes[0].selectedOptions[0].text;
+  const anioInicio = selectsAnio[0].value;
+  const mesFin = selectsMes[1].selectedOptions[0].text;
+  const anioFin = selectsAnio[1].value;
+  periodoValor = `De ${mesInicio} ${anioInicio} a ${mesFin} ${anioFin}`;
+} else if (selectsMes.length === 1 && selectsAnio.length === 1) {
+  const mes = selectsMes[0].selectedOptions[0].text;
+  const anio = selectsAnio[0].value;
+  periodoValor = `${mes} ${anio}`;
+} else if (selectsAnio.length === 1 && selectsMes.length === 0) {
+  periodoValor = `${selectsAnio[0].value}`;
+}
   }
 
   if (tienePeriodo) {
@@ -1190,35 +1439,25 @@ doc.autoTable({
   doc.setFont("helvetica", "bold");
   doc.text(`TOTAL: $${totalGeneral.toFixed(2)}`, 140, y);
 
-  // === BLOQUE PARA PAGOS DIFERIDOS (TRIMESTRAL / SEMESTRAL) ===
-const tipoPagoSelect = document.getElementById('tipoPago');
-const tipoPago = tipoPagoSelect ? tipoPagoSelect.value : "";
-
-if (totalGeneral > 3000 && tipoPago) {
-  let numPagos = (tipoPago === 'trimestral') ? 4 : 2;
-  const pagoParcial = (totalGeneral / numPagos).toFixed(2);
-
-  // Asegura que se escriba debajo de la tabla (autoTable)
-  let yActual = (doc.lastAutoTable && doc.lastAutoTable.finalY)
-    ? doc.lastAutoTable.finalY + 20
-    : 140;
-
-  // Título de la sección de pagos
-  doc.setFontSize(12);
+  // === BLOQUES DE PAGOS DIFERIDOS (PDF) ===
+if (window._bloquesPago?.length) {
+  let yActual = (doc.lastAutoTable?.finalY || 140) + 20;
   doc.setFont("helvetica", "bold");
-  doc.text(`Pagos ${tipoPago.charAt(0).toUpperCase() + tipoPago.slice(1)}:`, 14, yActual);
-  doc.setFontSize(10);
+  doc.text(`Desglose de pagos (${window._tipoPagoActual}):`, 14, yActual);
+  yActual += 8;
   doc.setFont("helvetica", "normal");
-
-  // Detalle de los pagos
-  for (let i = 1; i <= numPagos; i++) {
-    doc.text(`Pago ${i}: $${pagoParcial}`, 20, yActual + (i * 6));
-  }
-
-  // ✅ Actualizamos posición global "y" para evitar que se encimen las leyendas
-  y = yActual + (numPagos * 6) + 15;
+  window._bloquesPago.forEach(b => {
+    doc.text(`Bloque ${b.num}:`, 18, yActual);
+    yActual += 6;
+    b.items.forEach(x => {
+      doc.text(`• ${x.servicio} — ${x.periodo} — $${x.precio.toFixed(2)}`, 22, yActual);
+      yActual += 5;
+    });
+    doc.text(`Subtotal bloque ${b.num}: $${b.subtotal.toFixed(2)}`, 22, yActual);
+    yActual += 8;
+  });
+  y = yActual + 10;
 }
-
   // === Leyendas ===
   y += 15;
   doc.setFontSize(8);
@@ -1243,5 +1482,6 @@ if (totalGeneral > 3000 && tipoPago) {
 </script>
 </body>
 </html>
+
 
 
