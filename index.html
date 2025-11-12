@@ -662,7 +662,7 @@ const productosSoloAnio = [
     tdProducto.appendChild(selectProducto);
 
  // --- Escuchar cambio de producto para mostrar columna periodo dinámicamente ---
-selectProducto.addEventListener("change", function() {
+  selectProducto.addEventListener("change", function() {
   const productoSeleccionado = this.options[this.selectedIndex].text.trim();
   const cantidadInput = fila.querySelector("input[type='number']");
   const cantidad = parseInt(cantidadInput.value) || 1;
@@ -680,6 +680,11 @@ selectProducto.addEventListener("change", function() {
   if (!esMensual && !esAnualSolo && !esPaqueteAnual) {
     mostrarColumnaPeriodo(false);
     return;
+    document.addEventListener("change", function (e) {
+  if (e.target.matches(".select-mes, .inicio-mes, .fin-mes, .select-anio, .inicio-anio, .fin-anio")) {
+    calcularPagosProporcionales();
+  }
+});
   }
 
   // Crear nueva celda de periodo
@@ -1502,3 +1507,4 @@ if (window._bloquesPago?.length) {
 </script>
 </body>
 </html>
+
