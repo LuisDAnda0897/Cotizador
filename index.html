@@ -680,11 +680,6 @@ const productosSoloAnio = [
   if (!esMensual && !esAnualSolo && !esPaqueteAnual) {
     mostrarColumnaPeriodo(false);
     return;
-    document.addEventListener("change", function (e) {
-  if (e.target.matches(".select-mes, .inicio-mes, .fin-mes, .select-anio, .inicio-anio, .fin-anio")) {
-    calcularPagosProporcionales();
-  }
-});
   }
 
   // Crear nueva celda de periodo
@@ -774,6 +769,10 @@ const productosSoloAnio = [
 
   const selects = celdaPeriodo.querySelectorAll(".inicio-mes, .inicio-anio, .fin-mes, .fin-anio");
   selects.forEach(sel => sel.addEventListener("change", verificarRango));
+  const selectsPeriodo = celdaPeriodo.querySelectorAll("select");
+  selectsPeriodo.forEach(sel => {
+  sel.addEventListener("change", () => calcularPagosProporcionales());
+  });
 
   mostrarColumnaPeriodo(true);
 }
@@ -1507,4 +1506,5 @@ if (window._bloquesPago?.length) {
 </script>
 </body>
 </html>
+
 
