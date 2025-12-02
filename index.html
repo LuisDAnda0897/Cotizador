@@ -1080,7 +1080,19 @@ const validarRangoPeriodo = () => {
           filasDidi.push(tr);
       }
   });
+  // 🔥 Validación de límite máximo (12 unidades) para DiDi Elite
+  for (const tr of filasDidi) {
+    const cantidadInput = tr.querySelector("input[type='number']");
+    const cantidad = cantidadInput ? parseInt(cantidadInput.value) || 0 : 0;
 
+    if (cantidad > 12) {
+        mostrarMensajeUX("El descuento DiDi Elite solo aplica hasta máximo 12 declaraciones mensuales.");
+        check.checked = false;
+        nivelSelect.value = "";
+        document.getElementById("didiNivelContainer").style.display = "none";
+        return;
+    }
+}
   // si no existe el producto
   if (filasDidi.length === 0) {
       mensajeError.style.display = "block";
@@ -1829,9 +1841,35 @@ if (window._bloquesPago?.length) {
     const tr = e.target.closest("tr");
     if (!tr) return;
 
-    // 🔥 Muy importante: eliminar el subtotal Didi guardado
-    if (tr.dataset.subtotalDidi) delete tr.dataset.subtotalDidi;
+    const selectServicio = tr.querySelector("select");
+const inputCantidad = tr.querySelector("input[type='number']");
+const nombreServicio = selectServicio?.selectedOptions?.[0]?.text?.toLowerCase() || "";
 
+const esDidi = nombreServicio.includes("declaración mensual didi elite") ||
+               nombreServicio.includes("declaracion mensual didi elite");
+
+const descuentoActivo = document.getElementById("esDidiElite")?.checked;
+const nivelElegido = parseFloat(document.getElementById("didiNivel")?.value) || 0;
+
+if (
+    esDidi &&
+    descuentoActivo &&
+    nivelElegido > 0 &&
+    e.target === inputCantidad
+) {
+    const cantidad = parseInt(inputCantidad.value) || 0;
+
+    if (cantidad > 12) {
+        inputCantidad.value = 12;
+        mostrarMensajeFlotante("Solo se permiten hasta 12 declaraciones para aplicar descuento DiDi Elite.");
+        
+        if (tr.dataset.subtotalDidi) delete tr.dataset.subtotalDidi;
+
+        recalcularFila(tr);
+        calcularTotal();
+        return;
+    }
+}
     // recalcular únicamente la fila y luego los totales
     recalcularFila(tr);
     calcularTotal();
@@ -1868,6 +1906,94 @@ if (window._bloquesPago?.length) {
 })();
   });
 });
+
+function validarFilaDidiElite(tr) {
+    if (!tr) return false;
+    const selectServicio = tr.querySelector("select");
+    const inputCantidad = tr.querySelector("input[type='number']");
+    if (!selectServicio || !inputCantidad) return false;
+
+    const nombreServicio = (selectServicio.selectedOptions?.[0]?.text || "").toLowerCase();
+    const esDidi = nombreServicio.includes("declaración mensual didi elite") ||
+                   nombreServicio.includes("declaracion mensual didi elite");
+
+    const descuentoActivo = !!document.getElementById("esDidiElite")?.checked;
+    const nivelElegido = parseFloat(document.getElementById("didiNivel")?.value) || 0;
+
+    // Si no es DiDi o no está activo el descuento con nivel, quitamos max y salimos
+    if (!esDidi || !descuentoActivo || nivelElegido <= 0) {
+        inputCantidad.removeAttribute("max");
+        return true;
+    }
+
+    // Forzar máximo 12
+    const cantidad = parseInt(inputCantidad.value, 10) || 0;
+    if (cantidad > 12) {
+        inputCantidad.value = 12; // corrige el valor
+        mostrarMensajeFlotante("Solo se permiten hasta 12 declaraciones para aplicar descuento DiDi Elite.");
+    }
+
+    // aplica atributo max para evitar futuros inputs mayores
+    inputCantidad.setAttribute("max", "12");
+
+    // recalcula fila y totales (asumiendo que estas funciones existen)
+    if (typeof recalcularFila === "function") recalcularFila(tr);
+    if (typeof calcularTotal === "function") calcularTotal();
+
+    return true;
+}
+
+// valida todas las filas (cuando cambias nivel o checkbox)
+function validarTodasFilasDidiElite() {
+    const filas = document.querySelectorAll("#tablaServicios tbody tr");
+    filas.forEach(tr => validarFilaDidiElite(tr));
+}
+
+// Delegación: escucha input y change sobre la tabla para detectar cambios de cantidad
+const tabla = document.getElementById("tablaServicios");
+if (tabla) {
+    tabla.addEventListener("input", function (e) {
+        // sólo nos interesa inputs numéricos (cantidad)
+        if (e.target && e.target.matches && e.target.matches('input[type="number"]')) {
+            const tr = e.target.closest("tr");
+            // validar esa fila (esto corregirá >12)
+            validarFilaDidiElite(tr);
+            return;
+        }
+        // si cambió el select servicio en la fila, también validar la fila
+        if (e.target && e.target.matches && e.target.matches('select')) {
+            const tr = e.target.closest("tr");
+            validarFilaDidiElite(tr);
+            return;
+        }
+    });
+
+    // change para cubrir escenarios donde input cambia pero no dispara input (ej: pegado o controles)
+    tabla.addEventListener("change", function (e) {
+        if (e.target && e.target.matches) {
+            if (e.target.matches('input[type="number"]') || e.target.matches('select')) {
+                const tr = e.target.closest("tr");
+                validarFilaDidiElite(tr);
+            }
+        }
+    });
+}
+
+// Cuando el usuario cambia el nivel DiDi o el checkbox, validar todas las filas
+const didiNivel = document.getElementById("didiNivel");
+const didiCheckbox = document.getElementById("esDidiElite");
+
+if (didiNivel) {
+    didiNivel.addEventListener("change", function () {
+        validarTodasFilasDidiElite();
+    });
+}
+
+if (didiCheckbox) {
+    didiCheckbox.addEventListener("change", function () {
+        validarTodasFilasDidiElite();
+    });
+}
 </script>
 </body>
 </html>
