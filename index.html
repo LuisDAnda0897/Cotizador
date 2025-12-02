@@ -469,6 +469,27 @@ th.periodo-header {
       <tbody></tbody>
     </table>
     <button class="btn acciones" id="btnAgregarServicio">+ Agregar Servicio</button>
+    <div id="didiEliteContainer" style="margin-top:20px; padding:12px; border:1px solid #ccc; border-radius:8px; background:#f8f8f8;">
+    <label>
+        <input type="checkbox" id="esDidiElite"> Cliente DiDi Elite
+    </label>
+
+    <div id="didiNivelContainer" style="margin-top:10px; display:none;">
+        <label><strong>Nivel DiDi:</strong></label>
+        <select id="didiNivel" class="form-control" style="width:200px;">
+            <option value="">Seleccione nivel</option>
+            <option value="5"  data-nivel="Básico">DiDi Básico - 5%</option>
+            <option value="10" data-nivel="Avanzado">DiDi Avanzado - 10%</option>
+            <option value="15" data-nivel="Experto">DiDi Experto - 15%</option>
+            <option value="30" data-nivel="Elite">DiDi Elite - 30%</option>
+        </select>
+    </div>
+
+    <p id="didiMensajeError" style="color:red; margin-top:10px; display:none;">
+        Este descuento aplica solo para DECLARACIÓN MENSUAL DiDi ELITE.  
+        Por favor agrégalo e intenta de nuevo.
+    </p>
+</div>
   </div>
 
   <div class="observaciones">
@@ -602,7 +623,7 @@ document.addEventListener("DOMContentLoaded", function() {
   { nombre: "PAQUETE RENOVACIÓN (SELLOS + FIRMA ELECTRONICA)", precio: 350 },
   { nombre: "PAQUETE INICIAL", precio: 599 },
   { nombre: "PAQUETE ANUAL 1 APP", precio: 3600 },
-  { nombre: "PAQUETE ANUAL 2 APPS", precio: 4500 }
+  { nombre: "PAQUETE ANUAL 2 APPS", precio: 4500 },
   { nombre: "CONSTANCIA DE SITUACIÓN FISCAL", precio: 100 },
   { nombre: "CONSTANCIA DE SITUACIÓN FISCAL SIN CONTRASEÑA", precio: 180 },
   { nombre: "RECUPERACIÓN DE CERTIFICADOS", precio: 100 },
@@ -614,10 +635,11 @@ document.addEventListener("DOMContentLoaded", function() {
   { nombre: "RENOVACIÓN FIRMA ELECTRONICA", precio: 250 },
   { nombre: "GENERACIÓN DE SELLOS DIGITALES", precio: 250 },
   { nombre: "REFACTURACIÓN DE AUTO SINIESTRADO", precio: 420 },
-  { nombre: "DEVOLUCIÓN MANUAL SAT (ISR + 15% EN BASE SALDO)", precio: 599 },
+  { nombre: "DEVOLUCIÓN MANUAL SAT (ISR + 15% EN BASE SALDO)", precio: 599 }
 ];
 
 const productosPeriodoMesAnio = [
+  "DECLARACIÓN MENSUAL DiDi ELITE",
   "DECLARACIÓN COMPLEMENTARIA",
   "DECLARACIÓN EN CEROS",
   "DECLARACIÓN MENSUAL 1 APP",
@@ -637,6 +659,14 @@ const productosSoloAnio = [
   "DECLARACIÓN ANUAL DESPACHO EXTERNO (PLATAFORMA + SALARIOS)"
 ];
 
+  function normalizarTexto(txt) {
+    return txt
+        .toLowerCase()
+        .normalize("NFD")               // separa acentos
+        .replace(/[\u0300-\u036f]/g, "") // elimina acentos
+        .replace(/\s+/g, " ")           // elimina espacios dobles
+        .trim();
+}
   // --- Inicialización ---
   function generarFolio(){ return 'COT-' + Math.floor(Math.random()*100000); }
   function actualizarFecha(){ document.getElementById('fechaCotizacion').textContent = new Date().toLocaleDateString('es-MX'); }
@@ -904,35 +934,213 @@ const validarRangoPeriodo = () => {
   document.getElementById("btnAgregarServicio").addEventListener("click", agregarFila);
   document.getElementById("descuento").addEventListener("input", calcularTotal);
 
-  // --- Calcular totales ---
+  // --- Calcular totales (versión robusta) ---
   function calcularTotal(){
-    let subtotal=0;
-    document.querySelectorAll("#tablaServicios tbody tr").forEach(tr=>{
-      const precio = parseFloat(tr.cells[1].dataset.precio) || 0;
-      const cantidad = parseFloat(tr.cells[2].querySelector("input").value) || 0;
-      const sub = precio*cantidad;
-      tr.cells[3].textContent = sub.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-      subtotal+=sub;
+  let subtotal = 0;
+
+  const esDidiActivo = !!document.getElementById("esDidiElite")?.checked;
+  const descuentoInput = document.getElementById("descuento");
+
+  // Si DiDi está activo, por seguridad forzamos que el descuento general no afecte.
+  const descuentoPorcentaje = (esDidiActivo ? 0 : (parseFloat(descuentoInput?.value) || 0));
+
+  // Tomamos el nivel DiDi seleccionado (si existe)
+  const nivelSelect = document.getElementById("didiNivel");
+  const nivelDidi = parseFloat(nivelSelect?.value) || 0;
+
+  // recorrer filas
+  document.querySelectorAll("#tablaServicios tbody tr").forEach(tr => {
+
+    // 🔍 Nombre del servicio para detectar si es la fila de DiDi Elite
+    const nombreServicioRaw =
+      (tr.querySelector(".colDescripcion")?.textContent || "") ||
+      (tr.querySelector(".colServicio")?.textContent || "") ||
+      (tr.querySelector("select")?.selectedOptions?.[0]?.text || "") ||
+      "";
+
+    const esDidiFila = normalizarTexto(nombreServicioRaw)
+      .includes("declaracion mensual didi elite");
+
+    // 2) obtener precio (dataset preferido)
+    const precio = parseFloat(tr.cells[1]?.dataset?.precio) || 0;
+
+    // 3) encontrar cantidad de forma segura
+    const cantidadInput = tr.querySelector("input[type='number']");
+    const cantidad = cantidadInput ? (parseFloat(cantidadInput.value) || 0) : 0;
+
+    // 🟡 CASO ESPECIAL: Fila DiDi Elite con checkbox activo y nivel seleccionado
+    if (esDidiActivo && esDidiFila && nivelDidi > 0) {
+      const subtotalOriginal = precio * cantidad;
+      const descuento = subtotalOriginal * (nivelDidi / 100);
+      const subtotalFinal = subtotalOriginal - descuento;
+
+      // Actualizamos dataset y celda SIEMPRE con la cantidad actual
+      tr.dataset.subtotalDidi = subtotalFinal;
+      tr.cells[3].textContent = subtotalFinal.toLocaleString('es-MX', {
+        style: 'currency',
+        currency: 'MXN'
+      });
+
+      subtotal += subtotalFinal;
+      return; // siguiente fila
+    }
+
+    // Si por alguna razón hay dataset subtotales Didi pero ya no debería aplicarse, lo limpiamos
+    if (tr.dataset.subtotalDidi && (!esDidiActivo || !esDidiFila || nivelDidi <= 0)) {
+      delete tr.dataset.subtotalDidi;
+    }
+
+    // 🔹 RESTO DE FILAS (o DiDi sin nivel): cálculo normal
+    const sub = precio * cantidad;
+    tr.cells[3].textContent = sub.toLocaleString('es-MX', {
+      style: 'currency',
+      currency: 'MXN'
     });
-    document.getElementById("subtotalGeneral").textContent = subtotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-    const descuento = parseFloat(document.getElementById("descuento").value) || 0;
-    const total = subtotal*(1-(descuento/100));
-    document.getElementById("totalGeneral").textContent = total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-    // === Mostrar u ocultar selector de tipo de pago ===
-const tipoPagoContainer = document.getElementById("tipoPagoContainer");
-if (tipoPagoContainer) {
-  if (total > 1499) {
-    tipoPagoContainer.style.display = "block";
-  } else {
-    tipoPagoContainer.style.display = "none";
-    document.getElementById("tipoPago").value = "";
-    document.getElementById("pagosProporcionales").innerHTML = "";
-  }
-}
-    calcularPagosProporcionales();
-    const bloquesPago = calcularPagosProporcionales(totalGeneral);
+    subtotal += sub;
+  });
+
+  // actualizar DOM
+  document.getElementById("subtotalGeneral").textContent = subtotal.toLocaleString('es-MX', {
+    style: 'currency',
+    currency: 'MXN'
+  });
+
+  // aplicar descuento general SOLO si DiDi NO está activo
+  const total = subtotal * (1 - (descuentoPorcentaje / 100));
+  document.getElementById("totalGeneral").textContent = total.toLocaleString('es-MX', {
+    style: 'currency',
+    currency: 'MXN'
+  });
+
+  // manejar visibilidad / estado tipo de pago (lo dejamos igual que tenías)
+  const tipoPagoContainer = document.getElementById("tipoPagoContainer");
+  if (tipoPagoContainer) {
+    if (total > 1499) {
+      tipoPagoContainer.style.display = "block";
+    } else {
+      tipoPagoContainer.style.display = "none";
+      document.getElementById("tipoPago").value = "";
+      document.getElementById("pagosProporcionales").innerHTML = "";
+    }
   }
 
+  // recalcular bloques (si aplica)
+  calcularPagosProporcionales();
+  calcularPagosProporcionales(total); // si tu función ignora argumentos está bien
+}
+
+  function aplicarDescuentoDidiElite() {
+  const check = document.getElementById("esDidiElite");
+  const nivelSelect = document.getElementById("didiNivel");
+  const nivel = parseFloat(nivelSelect.value) || 0;
+  const nivelNombre = nivelSelect.options[nivelSelect.selectedIndex]?.dataset.nivel || "";
+  const mensajeError = document.getElementById("didiMensajeError");
+  const descuentoGeneral = document.getElementById("descuento");
+
+  mensajeError.style.display = "none";
+
+  // Si se desactiva DiDi Elite -> limpiar datasets y restaurar comportamiento
+  if (!check.checked) {
+      // eliminar subtotales DiDi guardados (forzar recálculo normal)
+      document.querySelectorAll("#tablaServicios tbody tr").forEach(tr => {
+          if (tr.dataset.subtotalDidi) delete tr.dataset.subtotalDidi;
+      });
+
+      nivelSelect.value = "";
+      document.getElementById("didiNivelContainer").style.display = "none";
+
+      // Reactivar descuento general
+      if (descuentoGeneral) {
+        descuentoGeneral.disabled = false;
+        // no cambiar el valor del usuario (si quieres reiniciar: descuentoGeneral.value = 0;)
+      }
+
+      // eliminar info global
+      delete window._didiDescuentoInfo;
+
+      return calcularTotal();
+  }
+
+  // Mostrar selector de nivel
+  document.getElementById("didiNivelContainer").style.display = "block";
+
+  // Buscar el producto requerido en la tabla
+  const filas = document.querySelectorAll("#tablaServicios tbody tr");
+  const requerido = "declaracion mensual didi elite";
+  const filasDidi = [];
+
+  filas.forEach(tr => {
+      const nombre =
+          (tr.querySelector(".colDescripcion")?.textContent || "").trim() ||
+          (tr.querySelector(".colServicio")?.textContent || "").trim() ||
+          (tr.querySelector("select")?.selectedOptions?.[0]?.text || "").trim() ||
+          "";
+
+      if (normalizarTexto(nombre).includes(requerido)) {
+          filasDidi.push(tr);
+      }
+  });
+
+  // si no existe el producto
+  if (filasDidi.length === 0) {
+      mensajeError.style.display = "block";
+      check.checked = false;
+      nivelSelect.value = "";
+      document.getElementById("didiNivelContainer").style.display = "none";
+      return;
+  }
+
+  // si no selecciona nivel aún, no aplicar nada
+  if (!nivel) {
+      // asegurarnos que descuento general no quede bloqueado si no hay nivel
+      if (descuentoGeneral) descuentoGeneral.disabled = false;
+      return;
+  }
+
+  // BLOQUEAR DESCUENTO GENERAL PERO NO ASIGNAR VALOR (evita doble descuento)
+  if (descuentoGeneral) {
+    descuentoGeneral.value = 0;
+    descuentoGeneral.disabled = true;
+  }
+
+  // Antes de aplicar, eliminar cualquier subtotalDidi antiguo para recalcular con la nueva cantidad/nivel
+  filasDidi.forEach(tr => { if (tr.dataset.subtotalDidi) delete tr.dataset.subtotalDidi; });
+
+  // Aplicar descuento solo a la(s) fila(s) Didi
+  let subtotalBase = 0;
+  let descuentoTotal = 0;
+
+  filasDidi.forEach(tr => {
+      const precioOriginal = parseFloat(tr.cells[1]?.dataset?.precio) || 0;
+
+      // obtener cantidad de forma segura
+      const cantidadInput = tr.querySelector("input[type='number']");
+      const cantidad = cantidadInput ? (parseInt(cantidadInput.value) || 1) : 1;
+
+      const subtotalOriginal = precioOriginal * cantidad;
+      const descuento = subtotalOriginal * (nivel / 100);
+      const subtotalFinal = subtotalOriginal - descuento;
+
+      // actualizar celda y dataset
+      tr.cells[3].textContent = subtotalFinal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+      tr.dataset.subtotalDidi = subtotalFinal;
+
+      subtotalBase += subtotalOriginal;
+      descuentoTotal += descuento;
+  });
+
+  // Guardar info global (para PDF u otros usos)
+  window._didiDescuentoInfo = {
+      nivelPorcentaje: nivel,
+      nivelNombre,
+      subtotalBase,
+      descuento: descuentoTotal,
+      subtotalFinal: subtotalBase - descuentoTotal
+  };
+
+  // Recalcular totales generales (calcularTotal respeta dataset.subtotalDidi)
+  calcularTotal();
+}
   // 🔁 Detectar cambio en el tipo de pago y recalcular
   (function attachTipoPagoListener(){
   const tipoPagoSelect = document.getElementById("tipoPago");
@@ -962,8 +1170,14 @@ if (descuentoInput) {
     descuentoInput.disabled = true;
     descuentoInput.title = "El descuento se deshabilita al dividir los pagos";
   } else {
-    descuentoInput.disabled = false;
-    descuentoInput.title = "";
+    // Si DiDi Elite está activo, NO permitir descuento general
+    if (document.getElementById("esDidiElite").checked) {
+        descuentoInput.disabled = true;
+        descuentoInput.title = "El descuento general está deshabilitado porque aplicaste un descuento DiDi.";
+    } else {
+        descuentoInput.disabled = false;
+        descuentoInput.title = "";
+    }
   }
 }
 
@@ -1293,7 +1507,9 @@ function mostrarMensajeUX(texto) {
   document.getElementById("fechaCotizacion").textContent = new Date().toLocaleDateString('es-MX');
   mostrarMensajeUX("Formulario limpiado ✨");
 });
-    
+
+document.getElementById("esDidiElite").addEventListener("change", aplicarDescuentoDidiElite);
+document.getElementById("didiNivel").addEventListener("change", aplicarDescuentoDidiElite);    
 document.getElementById("btnPDF").addEventListener("click", async function () {
   calcularTotal();
   const { jsPDF } = window.jspdf;
@@ -1486,6 +1702,29 @@ doc.autoTable({
   doc.setFont("helvetica", "bold");
   doc.text(`TOTAL: $${totalGeneral.toFixed(2)}`, 140, y);
 
+  // =============== DESCUENTO DIDI ELITE EN PDF =================
+if (window._didiDescuentoInfo && document.getElementById("esDidiElite").checked) {
+    y += 8;
+    doc.setFont("helvetica", "bold");
+    doc.text("Descuento DiDi Elite:", 10, y);
+
+    const info = window._didiDescuentoInfo;
+    y += 6;
+
+    doc.setFont("helvetica", "normal");
+    doc.text(`Nivel: ${info.nivelNombre} (${info.nivelPorcentaje}%)`, 12, y);
+    y += 5;
+
+    doc.text(`Subtotal base Ud.: $${info.subtotalBase.toFixed(2)}`, 12, y);
+    y += 5;
+
+    doc.text(`Descuento aplicado Ud.: -$${info.descuento.toFixed(2)}`, 12, y);
+    y += 5;
+
+    doc.text(`Subtotal final del producto Ud.: $${info.subtotalFinal.toFixed(2)}`, 12, y);
+    y += 10;
+}
+
   // === BLOQUES DE PAGOS DIFERIDOS (PDF) ===
 if (window._bloquesPago?.length) {
   let yActual = (doc.lastAutoTable?.finalY || 140) + 20;
@@ -1524,6 +1763,109 @@ if (window._bloquesPago?.length) {
   doc.save(`COTIZACION_${clienteNombre || "SWARTZ"}.pdf`);
   mostrarMensajeFlotante("PDF generado con éxito ✅");
 
+(function attachRobustCantidadRecalc() {
+
+  // Nombre normalizado que identifica el producto Didi
+  const REQ_DIDI = "declaracion mensual didi elite";
+
+  function formatCurrency(v){
+    return Number(v || 0).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+  }
+
+  // Recalcula SOLO la fila pasada (tr). Actualiza celda subtotal y dataset según corresponda.
+  function recalcularFila(tr) {
+    if (!tr) return;
+
+    // obtener precio (dataset preferido)
+    const precio = parseFloat(tr.cells[1]?.dataset?.precio) || 0;
+
+    // obtener cantidad de forma segura
+    const cantidadInput = tr.querySelector("input[type='number']");
+    const cantidad = cantidadInput ? (parseFloat(cantidadInput.value) || 0) : 0;
+
+    // nombre normalizado para detectar Didi
+    const nombreRaw =
+      (tr.querySelector(".colDescripcion")?.textContent || "") ||
+      (tr.querySelector(".colServicio")?.textContent || "") ||
+      (tr.querySelector("select")?.selectedOptions?.[0]?.text || "");
+    const nombre = (nombreRaw || "").toString().toLowerCase();
+
+    const esDidi = nombre.normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(REQ_DIDI);
+
+    if (esDidi && document.getElementById("esDidiElite")?.checked) {
+      // calcular usando el nivel actual (si no hay nivel no aplicar)
+      const nivelSelect = document.getElementById("didiNivel");
+      const nivel = parseFloat(nivelSelect?.value) || 0;
+      // si no hay nivel seleccionado, comportarse como fila normal (sin dataset)
+      if (!nivel) {
+        if (tr.dataset.subtotalDidi) delete tr.dataset.subtotalDidi;
+        const sub = precio * cantidad;
+        tr.cells[3].textContent = formatCurrency(sub);
+        return;
+      }
+
+      const subtotalOriginal = precio * cantidad;
+      const descuento = subtotalOriginal * (nivel / 100);
+      const subtotalFinal = subtotalOriginal - descuento;
+
+      // actualizar visual y dataset
+      tr.cells[3].textContent = formatCurrency(subtotalFinal);
+      tr.dataset.subtotalDidi = subtotalFinal;
+
+    } else {
+      // no es Didi o Didi no activo: eliminar cualquier dataset y recalcular normal
+      if (tr.dataset.subtotalDidi) delete tr.dataset.subtotalDidi;
+      const sub = precio * cantidad;
+      tr.cells[3].textContent = formatCurrency(sub);
+    }
+  }
+
+  // Listener único sobre la tabla — captura siempre los cambios en inputs numéricos
+  const tabla = document.getElementById("tablaServicios");
+  if (!tabla) return;
+
+  tabla.addEventListener("input", function (e) {
+    if (!e.target || !e.target.matches("input[type='number']")) return;
+    const tr = e.target.closest("tr");
+    if (!tr) return;
+
+    // 🔥 Muy importante: eliminar el subtotal Didi guardado
+    if (tr.dataset.subtotalDidi) delete tr.dataset.subtotalDidi;
+
+    // recalcular únicamente la fila y luego los totales
+    recalcularFila(tr);
+    calcularTotal();
+});
+
+  // También asegurar recalculo si el usuario usa los flechitas (step) o pega: change
+  tabla.addEventListener("change", function (e) {
+    if (!e.target || !e.target.matches("input[type='number']")) return;
+    const tr = e.target.closest("tr");
+    if (!tr) return;
+
+    if (tr.dataset.subtotalDidi) delete tr.dataset.subtotalDidi;
+
+    recalcularFila(tr);
+    calcularTotal();
+});
+
+  // si cambian el checkbox DiDi o el nivel, recalcular todas las filas Didi (ya lo hace tu función, 
+  // pero nos aseguramos de que se ejecute aquí también)
+  const chk = document.getElementById("esDidiElite");
+  const sel = document.getElementById("didiNivel");
+  if (chk) chk.addEventListener("change", () => {
+    // eliminar dataset de todas las filas para forzar recálculo desde cero
+    document.querySelectorAll("#tablaServicios tbody tr").forEach(tr => {
+      if (tr.dataset.subtotalDidi) delete tr.dataset.subtotalDidi;
+    });
+    aplicarDescuentoDidiElite(); // tu función ya maneja limpiar/crear datasets
+  });
+  if (sel) sel.addEventListener("change", () => {
+    // cuando cambie el nivel, recalculamos todas las filas Didi (tu función lo hace, pero recalco por seguridad)
+    aplicarDescuentoDidiElite();
+  });
+
+})();
   });
 });
 </script>
