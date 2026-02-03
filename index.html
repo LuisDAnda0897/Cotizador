@@ -2028,8 +2028,7 @@ function obtenerPrecioPorAutos(autos) {
 }
 
 document.getElementById("numAutos").addEventListener("change", function () {
-  const nuevoPrecio = preciosDeclaracionPorAutos[this.value];
-
+  const nuevoPrecio = obtenerPrecioPorAutos(this.value);
   document.querySelectorAll("#tablaServicios tbody tr").forEach(tr => {
     const select = tr.querySelector("select");
     if (!select) return;
@@ -2044,6 +2043,7 @@ document.getElementById("numAutos").addEventListener("change", function () {
 </script>
 </body>
 </html>
+
 
 
 
