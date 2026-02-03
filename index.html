@@ -188,11 +188,6 @@ th {
   font-size: 11pt;
 }
 
-.numero-de-autos h3 {
-  color: var(--dorado-oscuro);
-  font-size: 10pt;
-}
-  
 .leyendas {
   font-size: 9pt;
   margin-top: 12px;
@@ -459,21 +454,6 @@ th.periodo-header {
 
 </div>
 
-<div class= numero de autos>
-<h3>Número de autos</h3>
-<select id="cantidadAutos" onchange="actualizarPrecioDeclaracion()" class="hover-dorado">
-  <option value="1">1</option>
-  <option value="2">2</option>
-  <option value="3">3</option>
-  <option value="4">4</option>
-  <option value="5">5</option>
-  <option value="6">6</option>
-  <option value="7-8">7 u 8</option>
-  <option value="9-10">9 o 10</option>
-  <option value="+11">+11</option>
-</select>
-</div>
-  
   <div class="form-section">
     <h3>Servicios</h3>
     <table id="tablaServicios" style="width: 1200px;">
@@ -593,7 +573,6 @@ th.periodo-header {
   }
 </style>
 <script>
-  let precioDeclaracionBase = null;
     async function toBase64(url) {
   const response = await fetch(url);
   const blob = await response.blob();
@@ -664,16 +643,13 @@ const productosPeriodoMesAnio = [
   "DECLARACIÓN MENSUAL DiDi ELITE",
   "DECLARACIÓN COMPLEMENTARIA",
   "DECLARACIÓN EN CEROS",
-  "DECLARACIÓN MENSUAL 1 o 2 APPS",
-  "DECLARACIÓN MENSUAL 3 o 4 APPS",
-  "DECLARACIÓN 612/626  PRECIO BASE",
+  "DECLARACIÓN MENSUAL 1 APP",
+  "DECLARACIÓN MENSUAL 2 APPS",
+  "DECLARACIÓN P.F.A.E 612/626 PRECIO BASE",
   "DECLARACIÓN RIF",
-  "PAQUETE ANUAL 1 o 2 APPS",
-  "PAQUETE INICIAL",
-  "PAQUETE 4 DECLARACIONES",
-  "PAQUETE 6 DECLARACIONES",
-  "PAQUETE 8 DECLARACIONES",
-  "PAQUETE 10 DECLARACIONES"
+  "PAQUETE ANUAL 1 APP",
+  "PAQUETE ANUAL 2 APPS",
+  "PAQUETE INICIAL"
 ];
 
 const productosSoloAnio = [
@@ -716,36 +692,22 @@ const productosSoloAnio = [
   });
 
   // --- Agregar servicio ---
-  function agregarFila() {
-  const tbody = document.querySelector("#tablaServicios tbody");
-  const fila = document.createElement("tr");
+  function agregarFila(){
+    const tbody = document.querySelector("#tablaServicios tbody");
+    const fila = document.createElement("tr");
 
-  const tdProducto = document.createElement("td");
-  const selectProducto = document.createElement("select");
-  selectProducto.style.width = "100%";
-  selectProducto.innerHTML = '<option value="">Seleccione</option>';
+    const tdProducto = document.createElement("td");
+    const selectProducto = document.createElement("select");
+    selectProducto.style.width = "100%";
+    selectProducto.innerHTML = '<option value="">Seleccione</option>';
+    serviciosDisponibles.forEach(s=>{
+      const opt = document.createElement("option");
+      opt.value = s.precio;
+      opt.textContent = s.nombre;
+      selectProducto.appendChild(opt);
+    });
+    tdProducto.appendChild(selectProducto);
 
-  serviciosDisponibles.forEach(s => {
-    const opt = document.createElement("option");
-    opt.value = s.precio;
-    opt.textContent = s.nombre;
-    selectProducto.appendChild(opt);
-  });
-
-  // 🔥 Guardar precio base cuando se selecciona declaración mensual
- selectProducto.addEventListener("change", () => {
-  const nombreServicio =
-    selectProducto.options[selectProducto.selectedIndex].text;
-
-  const precioServicio = parseFloat(selectProducto.value);
-
-  if (
-    nombreServicio.toUpperCase().includes("DECLARACIÓN MENSUAL 1 o 2 APPS") &&
-    precioDeclaracionBase === null
-  ) {
-    precioDeclaracionBase = precioServicio;
-  }
-});
  // --- Escuchar cambio de producto para mostrar columna periodo dinámicamente ---
   selectProducto.addEventListener("change", function() {
   const productoSeleccionado = this.options[this.selectedIndex].text.trim();
@@ -753,7 +715,7 @@ const productosSoloAnio = [
   const cantidad = parseInt(cantidadInput.value) || 1;
 
   // Determinar si requiere rango o año o mes/año
-  const esPaqueteAnual = ["PAQUETE ANUAL 1 o 2 APPS"].includes(productoSeleccionado);
+  const esPaqueteAnual = ["PAQUETE ANUAL 1 APP", "PAQUETE ANUAL 2 APPS"].includes(productoSeleccionado);
   const esMensual = productosPeriodoMesAnio.includes(productoSeleccionado) && !esPaqueteAnual;
   const esAnualSolo = productosSoloAnio.includes(productoSeleccionado);
 
@@ -964,7 +926,7 @@ const validarRangoPeriodo = () => {
     tdPrecio.textContent = precio.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
     calcularTotal();
 });
-}
+  }
   document.addEventListener("change", function (e) {
   if (e.target.matches(".select-mes, .inicio-mes, .fin-mes, .select-anio, .inicio-anio, .fin-anio")) {
     calcularPagosProporcionales();
@@ -1542,46 +1504,6 @@ function mostrarMensajeUX(texto) {
   }, 1500);
 }
 
-const preciosDeclaracion = {
-  "1": null, // se usará el precio original
-  "2": 380,
-  "3": 399,
-  "4": 449,
-  "5": 499,
-  "6": 549,
-  "7-8": 599,
-  "9-10": 649,
-  "+11": 699
-};
-
-function actualizarPrecioDeclaracion() {
-  const autos = document.getElementById("cantidadAutos").value;
-  const filas = document.querySelectorAll("#tablaServicios tbody tr");
-
-  filas.forEach(tr => {
-    const selectProducto = tr.querySelector("select");
-    if (!selectProducto) return;
-
-    const option = selectProducto.options[selectProducto.selectedIndex];
-    if (!option) return;
-
-    const nombre = option.textContent.toUpperCase();
-    if (!nombre.includes("DECLARACIÓN MENSUAL 1 o 2 APPS")) return;
-
-    // Guardar precio original UNA sola vez
-    if (!option.dataset.precioBase) {
-      option.dataset.precioBase = option.value;
-    }
-
-    if (autos === "1") {
-      option.value = option.dataset.precioBase;
-    } else {
-      option.value = preciosDeclaracion[autos];
-    }
-
-    // 🔥 Fuerza que el sistema recalcule
-    selectProducto.dispatchEvent(new Event("change", { bubbles: true }));
-  });
   // --- Limpiar formulario ---
   document.getElementById("btnLimpiar").addEventListener("click", function(){
   document.getElementById("clienteNombre").value = "";
@@ -1984,7 +1906,8 @@ if (
 
 })();
   });
-  
+});
+
 function validarFilaDidiElite(tr) {
     if (!tr) return false;
     const selectServicio = tr.querySelector("select");
@@ -2075,34 +1998,6 @@ if (didiCheckbox) {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
