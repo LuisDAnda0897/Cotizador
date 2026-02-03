@@ -1548,6 +1548,7 @@ function mostrarMensajeUX(texto) {
 }
 
 const preciosDeclaracion = {
+  "1": null, // se usará el precio original
   "2": 380,
   "3": 399,
   "4": 449,
@@ -1560,23 +1561,33 @@ const preciosDeclaracion = {
 
 function actualizarPrecioDeclaracion() {
   const autos = document.getElementById("cantidadAutos").value;
-  if (precioDeclaracionBase === null) return;
-
   const filas = document.querySelectorAll("#tablaServicios tbody tr");
 
   filas.forEach(tr => {
-    const nombre = tr.children[0].innerText.toUpperCase();
+    const selectProducto = tr.querySelector("select");
+    if (!selectProducto) return;
+
+    const option = selectProducto.options[selectProducto.selectedIndex];
+    if (!option) return;
+
+    const nombre = option.textContent.toUpperCase();
     if (!nombre.includes("DECLARACIÓN MENSUAL")) return;
 
-    // columna precio (2)
-    const precioCelda = tr.children[1];
+    // Guardar precio original UNA sola vez
+    if (!option.dataset.precioBase) {
+      option.dataset.precioBase = option.value;
+    }
 
     if (autos === "1") {
-      precioCelda.innerText = `$${precioDeclaracionBase}`;
+      option.value = option.dataset.precioBase;
     } else {
-      precioCelda.innerText = `$${preciosDeclaracion[autos]}`;
+      option.value = preciosDeclaracion[autos];
     }
+
+    // 🔥 Fuerza que el sistema recalcule
+    selectProducto.dispatchEvent(new Event("change", { bubbles: true }));
   });
+}
 
   calcularTotal();
 }
@@ -2074,6 +2085,7 @@ if (didiCheckbox) {
 </script>
 </body>
 </html>
+
 
 
 
