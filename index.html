@@ -730,6 +730,7 @@ const productosSoloAnio = [
       opt.textContent = s.nombre;
       selectProducto.appendChild(opt);
     });
+     tdProducto.appendChild(selectProducto);
     selectProducto.addEventListener("change", () => {
   const nombreServicio =
     selectProducto.options[selectProducto.selectedIndex].text;
@@ -2066,6 +2067,7 @@ if (didiCheckbox) {
 </script>
 </body>
 </html>
+
 
 
 
