@@ -453,7 +453,21 @@ th.periodo-header {
   </div>
 
 </div>
-
+  <div class="numero-autos">
+  <h3>Número de autos</h3>
+  <select id="numAutos">
+    <option value="1">1 auto</option>
+    <option value="2">2 autos</option>
+    <option value="3">3 autos</option>
+    <option value="4">4 autos</option>
+    <option value="5">5 autos</option>
+    <option value="6">6 autos</option>
+    <option value="7-8">7 u 8 autos</option>
+    <option value="9-10">9 o 10 autos</option>
+    <option value="11+">+11 autos</option>
+  </select>
+</div>
+  
   <div class="form-section">
     <h3>Servicios</h3>
     <table id="tablaServicios" style="width: 1200px;">
@@ -1997,9 +2011,37 @@ if (didiCheckbox) {
         validarTodasFilasDidiElite();
     });
 }
+const preciosDeclaracionPorAutos = {
+  "1": null,
+  "2": 380,
+  "3": 399,
+  "4": 449,
+  "5": 499,
+  "6": 549,
+  "7-8": 599,
+  "9-10": 649,
+  "11+": 699
+};
+
+document.getElementById("numAutos").addEventListener("change", function () {
+  const nuevoPrecio = preciosDeclaracionPorAutos[this.value];
+
+  document.querySelectorAll("#tablaServicios tbody tr").forEach(tr => {
+    const select = tr.querySelector("select");
+    if (!select) return;
+
+    const texto = select.options[select.selectedIndex]?.text || "";
+
+    if (texto.toUpperCase().includes("DECLARACIÓN MENSUAL") && nuevoPrecio !== null) {
+      select.value = nuevoPrecio;
+      select.dispatchEvent(new Event("change"));
+    }
+  });
+});
 </script>
 </body>
 </html>
+
 
 
 
