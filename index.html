@@ -1540,14 +1540,14 @@ window.actualizarPrecioDeclaracion = function () {
     const nombreServicio = fila.querySelector("td")?.innerText.toUpperCase();
     if (!nombreServicio.includes("DECLARACIÓN MENSUAL")) return;
 
-    // 🎯 PRECIO UNITARIO = columna 2
+    // 🎯 PRECIO UNITARIO = COLUMNA 2
     const celdaPrecio = fila.querySelector("td:nth-child(2)");
     if (!celdaPrecio) return;
 
     const inputPrecio = celdaPrecio.querySelector("input[type='number']");
     if (!inputPrecio) return;
 
-    // 🔐 Guardar precio original (una sola vez)
+    // 🔐 Guardar precio original SOLO una vez
     if (!inputPrecio.dataset.precioOriginal) {
       inputPrecio.dataset.precioOriginal = inputPrecio.value;
     }
@@ -2061,6 +2061,7 @@ if (didiCheckbox) {
 </script>
 </body>
 </html>
+
 
 
 
