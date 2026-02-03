@@ -453,6 +453,18 @@ th.periodo-header {
   </div>
 
 </div>
+  
+<select id="cantidadAutos" onchange="actualizarPrecioDeclaracion()" class="hover-dorado">
+  <option value="1">1</option>
+  <option value="2">2</option>
+  <option value="3">3</option>
+  <option value="4">4</option>
+  <option value="5">5</option>
+  <option value="6">6</option>
+  <option value="7-8">7 u 8</option>
+  <option value="9-10">9 o 10</option>
+  <option value="+11">+11</option>
+</select>
 
   <div class="form-section">
     <h3>Servicios</h3>
@@ -1503,6 +1515,42 @@ function mostrarMensajeUX(texto) {
     setTimeout(() => msg.remove(), 400);
   }, 1500);
 }
+  <script>
+const preciosDeclaracion = {
+  "2": 380,
+  "3": 399,
+  "4": 449,
+  "5": 499,
+  "6": 549,
+  "7-8": 599,
+  "9-10": 649,
+  "+11": 699
+};
+
+function actualizarPrecioDeclaracion() {
+  const select = document.getElementById("cantidadAutos");
+  const filas = document.querySelectorAll("#tablaServicios tbody tr");
+
+  filas.forEach(fila => {
+    const nombreServicio = fila.querySelector("td")?.innerText.toUpperCase();
+    if (!nombreServicio.includes("DECLARACIÓN MENSUAL")) return;
+
+    const inputPrecio = fila.querySelector("input[type='number']");
+    if (!inputPrecio) return;
+
+    // 🟢 1 auto → NO tocar el precio
+    if (select.value === "1") return;
+
+    // 🟢 Cualquier otra opción → precio dinámico
+    const precioNuevo = preciosDeclaracion[select.value];
+    if (precioNuevo) {
+      inputPrecio.value = precioNuevo;
+      inputPrecio.dispatchEvent(new Event("input"));
+    }
+  });
+}
+</script>
+
 
   // --- Limpiar formulario ---
   document.getElementById("btnLimpiar").addEventListener("click", function(){
@@ -1998,6 +2046,7 @@ if (didiCheckbox) {
 </script>
 </body>
 </html>
+
 
 
 
