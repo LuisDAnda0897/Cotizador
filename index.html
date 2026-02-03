@@ -1588,9 +1588,6 @@ function actualizarPrecioDeclaracion() {
     selectProducto.dispatchEvent(new Event("change", { bubbles: true }));
   });
 }
-
-  calcularTotal();
-}
   // --- Limpiar formulario ---
   document.getElementById("btnLimpiar").addEventListener("click", function(){
   document.getElementById("clienteNombre").value = "";
@@ -2085,6 +2082,7 @@ if (didiCheckbox) {
 </script>
 </body>
 </html>
+
 
 
 
