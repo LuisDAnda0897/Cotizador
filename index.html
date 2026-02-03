@@ -740,7 +740,7 @@ const productosSoloAnio = [
     const precioServicio = parseFloat(selectProducto.value);
 
     if (
-      nombreServicio.toUpperCase().includes("DECLARACIÓN MENSUAL") &&
+      nombreServicio.toUpperCase().includes("DECLARACIÓN MENSUAL 1 o 2 APPS") &&
       precioDeclaracionBase === null
     ) {
       precioDeclaracionBase = precioServicio;
@@ -750,6 +750,7 @@ const productosSoloAnio = [
   fila.appendChild(tdProducto);
   tbody.appendChild(fila);
 }
+});
  // --- Escuchar cambio de producto para mostrar columna periodo dinámicamente ---
   selectProducto.addEventListener("change", function() {
   const productoSeleccionado = this.options[this.selectedIndex].text.trim();
@@ -2079,6 +2080,7 @@ if (didiCheckbox) {
 </script>
 </body>
 </html>
+
 
 
 
