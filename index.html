@@ -716,34 +716,41 @@ const productosSoloAnio = [
   });
 
   // --- Agregar servicio ---
-  function agregarFila(){
-    const tbody = document.querySelector("#tablaServicios tbody");
-    const fila = document.createElement("tr");
+  function agregarFila() {
+  const tbody = document.querySelector("#tablaServicios tbody");
+  const fila = document.createElement("tr");
 
-    const tdProducto = document.createElement("td");
-    const selectProducto = document.createElement("select");
-    selectProducto.style.width = "100%";
-    selectProducto.innerHTML = '<option value="">Seleccione</option>';
-    serviciosDisponibles.forEach(s=>{
-      const opt = document.createElement("option");
-      opt.value = s.precio;
-      opt.textContent = s.nombre;
-      selectProducto.appendChild(opt);
-    });
-     tdProducto.appendChild(selectProducto);
-    selectProducto.addEventListener("change", () => {
-  const nombreServicio =
-    selectProducto.options[selectProducto.selectedIndex].text;
+  const tdProducto = document.createElement("td");
+  const selectProducto = document.createElement("select");
+  selectProducto.style.width = "100%";
+  selectProducto.innerHTML = '<option value="">Seleccione</option>';
 
-  const precioServicio = parseFloat(selectProducto.value);
+  serviciosDisponibles.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s.precio;
+    opt.textContent = s.nombre;
+    selectProducto.appendChild(opt);
+  });
 
-  if (
-    nombreServicio.toUpperCase().includes("DECLARACIÓN MENSUAL") &&
-    precioDeclaracionBase === null
-  ) {
-    precioDeclaracionBase = precioServicio;
-  }
-});
+  // 🔥 Guardar precio base cuando se selecciona declaración mensual
+  selectProducto.addEventListener("change", () => {
+    const nombreServicio =
+      selectProducto.options[selectProducto.selectedIndex].text;
+
+    const precioServicio = parseFloat(selectProducto.value);
+
+    if (
+      nombreServicio.toUpperCase().includes("DECLARACIÓN MENSUAL") &&
+      precioDeclaracionBase === null
+    ) {
+      precioDeclaracionBase = precioServicio;
+    }
+  });
+
+  tdProducto.appendChild(selectProducto);
+  fila.appendChild(tdProducto);
+  tbody.appendChild(fila);
+}
  // --- Escuchar cambio de producto para mostrar columna periodo dinámicamente ---
   selectProducto.addEventListener("change", function() {
   const productoSeleccionado = this.options[this.selectedIndex].text.trim();
@@ -2067,6 +2074,7 @@ if (didiCheckbox) {
 </script>
 </body>
 </html>
+
 
 
 
