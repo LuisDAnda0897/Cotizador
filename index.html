@@ -614,7 +614,7 @@ document.addEventListener("DOMContentLoaded", function() {
   { nombre: "APP ADICIONAL DECLARACIÓN", precio: 50 },
   { nombre: "DECLARACIÓN COMPLEMENTARIA", precio: 69 },
   { nombre: "DECLARACIÓN EN CEROS", precio: 199 },
-  { nombre: "DECLARACIÓN 612/626  PRECIO BASE", precio: 395 },
+  { nombre: "DECLARACIÓN 612/626 PRECIO BASE", precio: 395 },
   { nombre: "DECLARACIÓN RIF", precio: 395 },
   { nombre: "DECLARACIÓN ANUAL SUELDOS Y SALARIOS", precio: 439 },
   { nombre: "DECLARACIÓN ANUAL SWARTZ (80%)", precio: 659 },
@@ -643,13 +643,15 @@ const productosPeriodoMesAnio = [
   "DECLARACIÓN MENSUAL DiDi ELITE",
   "DECLARACIÓN COMPLEMENTARIA",
   "DECLARACIÓN EN CEROS",
-  "DECLARACIÓN MENSUAL 1 APP",
-  "DECLARACIÓN MENSUAL 2 APPS",
-  "DECLARACIÓN P.F.A.E 612/626 PRECIO BASE",
+  "DECLARACIÓN MENSUAL 1 o 2 APPs",
+  "DECLARACIÓN 612/626 PRECIO BASE",
   "DECLARACIÓN RIF",
-  "PAQUETE ANUAL 1 APP",
-  "PAQUETE ANUAL 2 APPS",
+  "PAQUETE ANUAL 1 o 2 APPS",
   "PAQUETE INICIAL"
+  "PAQUETE 4 DECLARACIONES",
+  "PAQUETE 6 DECLARACIONES", 
+  "PAQUETE 8 DECLARACIONES", 
+  "PAQUETE 10 DECLARACIONES"
 ];
 
 const productosSoloAnio = [
@@ -715,7 +717,7 @@ const productosSoloAnio = [
   const cantidad = parseInt(cantidadInput.value) || 1;
 
   // Determinar si requiere rango o año o mes/año
-  const esPaqueteAnual = ["PAQUETE ANUAL 1 APP", "PAQUETE ANUAL 2 APPS"].includes(productoSeleccionado);
+  const esPaqueteAnual = ["PAQUETE ANUAL 1 o 2 APPS"].includes(productoSeleccionado);
   const esMensual = productosPeriodoMesAnio.includes(productoSeleccionado) && !esPaqueteAnual;
   const esAnualSolo = productosSoloAnio.includes(productoSeleccionado);
 
@@ -1998,6 +2000,7 @@ if (didiCheckbox) {
 </script>
 </body>
 </html>
+
 
 
 
