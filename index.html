@@ -733,23 +733,18 @@ const productosSoloAnio = [
   });
 
   // 🔥 Guardar precio base cuando se selecciona declaración mensual
-  selectProducto.addEventListener("change", () => {
-    const nombreServicio =
-      selectProducto.options[selectProducto.selectedIndex].text;
+ selectProducto.addEventListener("change", () => {
+  const nombreServicio =
+    selectProducto.options[selectProducto.selectedIndex].text;
 
-    const precioServicio = parseFloat(selectProducto.value);
+  const precioServicio = parseFloat(selectProducto.value);
 
-    if (
-      nombreServicio.toUpperCase().includes("DECLARACIÓN MENSUAL 1 o 2 APPS") &&
-      precioDeclaracionBase === null
-    ) {
-      precioDeclaracionBase = precioServicio;
-    }
-
-  tdProducto.appendChild(selectProducto);
-  fila.appendChild(tdProducto);
-  tbody.appendChild(fila);
-}
+  if (
+    nombreServicio.toUpperCase().includes("DECLARACIÓN MENSUAL 1 o 2 APPS") &&
+    precioDeclaracionBase === null
+  ) {
+    precioDeclaracionBase = precioServicio;
+  }
 });
  // --- Escuchar cambio de producto para mostrar columna periodo dinámicamente ---
   selectProducto.addEventListener("change", function() {
@@ -2080,6 +2075,7 @@ if (didiCheckbox) {
 </script>
 </body>
 </html>
+
 
 
 
