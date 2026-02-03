@@ -730,13 +730,19 @@ const productosSoloAnio = [
       opt.textContent = s.nombre;
       selectProducto.appendChild(opt);
     });
-    tdProducto.appendChild(selectProducto);
-if (
-  selectProducto.toUpperCase().includes("DECLARACIÓN MENSUAL 1 o 2 APPS") &&
-  precioDeclaracionBase === null
-) {
-  precioDeclaracionBase = parseFloat(precio);
-}
+    selectProducto.addEventListener("change", () => {
+  const nombreServicio =
+    selectProducto.options[selectProducto.selectedIndex].text;
+
+  const precioServicio = parseFloat(selectProducto.value);
+
+  if (
+    nombreServicio.toUpperCase().includes("DECLARACIÓN MENSUAL") &&
+    precioDeclaracionBase === null
+  ) {
+    precioDeclaracionBase = precioServicio;
+  }
+});
  // --- Escuchar cambio de producto para mostrar columna periodo dinámicamente ---
   selectProducto.addEventListener("change", function() {
   const productoSeleccionado = this.options[this.selectedIndex].text.trim();
@@ -2060,6 +2066,7 @@ if (didiCheckbox) {
 </script>
 </body>
 </html>
+
 
 
 
