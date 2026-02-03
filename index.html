@@ -188,7 +188,7 @@ th {
   font-size: 11pt;
 }
 
-.numero de autos {
+.numero de autos h3 {
   color: var(--dorado-oscuro);
   font-size: 10pt;
 }
@@ -593,6 +593,7 @@ th.periodo-header {
   }
 </style>
 <script>
+  let precioDeclaracionBase = null;
     async function toBase64(url) {
   const response = await fetch(url);
   const blob = await response.blob();
@@ -730,7 +731,12 @@ const productosSoloAnio = [
       selectProducto.appendChild(opt);
     });
     tdProducto.appendChild(selectProducto);
-
+if (
+  nombre.toUpperCase().includes("DECLARACIÓN MENSUAL 1 o 2 APPS") &&
+  precioDeclaracionBase === null
+) {
+  precioDeclaracionBase = parseFloat(precio);
+}
  // --- Escuchar cambio de producto para mostrar columna periodo dinámicamente ---
   selectProducto.addEventListener("change", function() {
   const productoSeleccionado = this.options[this.selectedIndex].text.trim();
@@ -1538,40 +1544,28 @@ const preciosDeclaracion = {
   "+11": 699
 };
 
-window.actualizarPrecioDeclaracion = function () {
-  const select = document.getElementById("cantidadAutos");
-  if (!select) return;
+function actualizarPrecioDeclaracion() {
+  const autos = document.getElementById("cantidadAutos").value;
+  if (precioDeclaracionBase === null) return;
 
   const filas = document.querySelectorAll("#tablaServicios tbody tr");
 
-  filas.forEach(fila => {
-    const nombreServicio = fila
-      .querySelector("td")
-      ?.innerText.toUpperCase();
+  filas.forEach(tr => {
+    const nombre = tr.children[0].innerText.toUpperCase();
+    if (!nombre.includes("DECLARACIÓN MENSUAL")) return;
 
-    if (!nombreServicio.includes("DECLARACIÓN MENSUAL")) return;
+    // columna precio (2)
+    const precioCelda = tr.children[1];
 
-    // 👉 Precio unitario = columna 2
-    const inputPrecio = fila.querySelector("td:nth-child(2) input");
-    if (!inputPrecio) return;
-
-    // Guardar precio original UNA sola vez
-    if (!inputPrecio.dataset.precioOriginal) {
-      inputPrecio.dataset.precioOriginal = inputPrecio.value;
-    }
-
-    // 1 auto → restaurar precio original
-    if (select.value === "1") {
-      inputPrecio.value = inputPrecio.dataset.precioOriginal;
+    if (autos === "1") {
+      precioCelda.innerText = `$${precioDeclaracionBase}`;
     } else {
-      // 2+ autos → precio por tabla
-      inputPrecio.value = preciosDeclaracion[select.value];
+      precioCelda.innerText = `$${preciosDeclaracion[autos]}`;
     }
   });
 
-  // 🔥 ESTO ES LO QUE FALTABA
   calcularTotales();
-};
+}
   // --- Limpiar formulario ---
   document.getElementById("btnLimpiar").addEventListener("click", function(){
   document.getElementById("clienteNombre").value = "";
@@ -2066,6 +2060,7 @@ if (didiCheckbox) {
 </script>
 </body>
 </html>
+
 
 
 
