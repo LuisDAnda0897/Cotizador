@@ -1527,8 +1527,10 @@ const preciosDeclaracion = {
   "+11": 699
 };
 
-function actualizarPrecioDeclaracion() {
+window.actualizarPrecioDeclaracion = function () {
   const select = document.getElementById("cantidadAutos");
+  if (!select) return;
+
   const filas = document.querySelectorAll("#tablaServicios tbody tr");
 
   filas.forEach(fila => {
@@ -1538,17 +1540,26 @@ function actualizarPrecioDeclaracion() {
     const inputPrecio = fila.querySelector("input[type='number']");
     if (!inputPrecio) return;
 
-    // 🟢 1 auto → NO tocar el precio
-    if (select.value === "1") return;
+    // Guardar precio original una sola vez
+    if (!inputPrecio.dataset.precioOriginal) {
+      inputPrecio.dataset.precioOriginal = inputPrecio.value;
+    }
 
-    // 🟢 Cualquier otra opción → precio dinámico
+    // 1 auto → restaurar precio original
+    if (select.value === "1") {
+      inputPrecio.value = inputPrecio.dataset.precioOriginal;
+      inputPrecio.dispatchEvent(new Event("input"));
+      return;
+    }
+
+    // 2+ autos → precio dinámico
     const precioNuevo = preciosDeclaracion[select.value];
     if (precioNuevo) {
       inputPrecio.value = precioNuevo;
       inputPrecio.dispatchEvent(new Event("input"));
     }
   });
-}
+};
   // --- Limpiar formulario ---
   document.getElementById("btnLimpiar").addEventListener("click", function(){
   document.getElementById("clienteNombre").value = "";
@@ -2043,6 +2054,7 @@ if (didiCheckbox) {
 </script>
 </body>
 </html>
+
 
 
 
