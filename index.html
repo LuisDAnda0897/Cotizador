@@ -1571,7 +1571,7 @@ function actualizarPrecioDeclaracion() {
     if (!option) return;
 
     const nombre = option.textContent.toUpperCase();
-    if (!nombre.includes("DECLARACIÓN MENSUAL")) return;
+    if (!nombre.includes("DECLARACIÓN MENSUAL 1 o 2 APPS")) return;
 
     // Guardar precio original UNA sola vez
     if (!option.dataset.precioBase) {
@@ -1587,7 +1587,6 @@ function actualizarPrecioDeclaracion() {
     // 🔥 Fuerza que el sistema recalcule
     selectProducto.dispatchEvent(new Event("change", { bubbles: true }));
   });
-}
   // --- Limpiar formulario ---
   document.getElementById("btnLimpiar").addEventListener("click", function(){
   document.getElementById("clienteNombre").value = "";
@@ -2082,6 +2081,7 @@ if (didiCheckbox) {
 </script>
 </body>
 </html>
+
 
 
 
