@@ -453,7 +453,7 @@ th.periodo-header {
   </div>
 
 </div>
-  
+<h3>Número de autos</h3>  
 <select id="cantidadAutos" onchange="actualizarPrecioDeclaracion()" class="hover-dorado">
   <option value="1">1</option>
   <option value="2">2</option>
@@ -1540,22 +1540,26 @@ window.actualizarPrecioDeclaracion = function () {
     const nombreServicio = fila.querySelector("td")?.innerText.toUpperCase();
     if (!nombreServicio.includes("DECLARACIÓN MENSUAL")) return;
 
-    const inputPrecio = fila.querySelector("input[type='number']");
+    // 🎯 PRECIO UNITARIO = columna 2
+    const celdaPrecio = fila.querySelector("td:nth-child(2)");
+    if (!celdaPrecio) return;
+
+    const inputPrecio = celdaPrecio.querySelector("input[type='number']");
     if (!inputPrecio) return;
 
-    // Guardar precio original una sola vez
+    // 🔐 Guardar precio original (una sola vez)
     if (!inputPrecio.dataset.precioOriginal) {
       inputPrecio.dataset.precioOriginal = inputPrecio.value;
     }
 
-    // 1 auto → restaurar precio original
+    // 🟢 1 auto → restaurar precio original
     if (select.value === "1") {
       inputPrecio.value = inputPrecio.dataset.precioOriginal;
       inputPrecio.dispatchEvent(new Event("input"));
       return;
     }
 
-    // 2+ autos → precio dinámico
+    // 🟡 2+ autos → precio dinámico
     const precioNuevo = preciosDeclaracion[select.value];
     if (precioNuevo) {
       inputPrecio.value = precioNuevo;
@@ -2057,6 +2061,7 @@ if (didiCheckbox) {
 </script>
 </body>
 </html>
+
 
 
 
