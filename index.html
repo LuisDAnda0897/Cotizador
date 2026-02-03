@@ -753,7 +753,7 @@ const productosSoloAnio = [
   const cantidad = parseInt(cantidadInput.value) || 1;
 
   // Determinar si requiere rango o año o mes/año
-  const esPaqueteAnual = ["PAQUETE ANUAL 1 APP", "PAQUETE ANUAL 2 APPS"].includes(productoSeleccionado);
+  const esPaqueteAnual = ["PAQUETE ANUAL 1 o 2 APPS"].includes(productoSeleccionado);
   const esMensual = productosPeriodoMesAnio.includes(productoSeleccionado) && !esPaqueteAnual;
   const esAnualSolo = productosSoloAnio.includes(productoSeleccionado);
 
@@ -968,6 +968,7 @@ const validarRangoPeriodo = () => {
   document.addEventListener("change", function (e) {
   if (e.target.matches(".select-mes, .inicio-mes, .fin-mes, .select-anio, .inicio-anio, .fin-anio")) {
     calcularPagosProporcionales();
+  }
 });
   document.getElementById("btnAgregarServicio").addEventListener("click", agregarFila);
   document.getElementById("descuento").addEventListener("input", calcularTotal);
@@ -2075,6 +2076,7 @@ if (didiCheckbox) {
 </script>
 </body>
 </html>
+
 
 
 
