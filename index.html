@@ -732,7 +732,7 @@ const productosSoloAnio = [
     });
     tdProducto.appendChild(selectProducto);
 if (
-  Producto.toUpperCase().includes("DECLARACIÓN MENSUAL 1 o 2 APPS") &&
+  selectProducto.toUpperCase().includes("DECLARACIÓN MENSUAL 1 o 2 APPS") &&
   precioDeclaracionBase === null
 ) {
   precioDeclaracionBase = parseFloat(precio);
@@ -2060,6 +2060,7 @@ if (didiCheckbox) {
 </script>
 </body>
 </html>
+
 
 
 
