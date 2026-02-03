@@ -459,6 +459,7 @@ th.periodo-header {
 
 </div>
 
+<div class= numero de autos>
 <h3>Número de autos</h3>
 <select id="cantidadAutos" onchange="actualizarPrecioDeclaracion()" class="hover-dorado">
   <option value="1">1</option>
@@ -471,6 +472,8 @@ th.periodo-header {
   <option value="9-10">9 o 10</option>
   <option value="+11">+11</option>
 </select>
+</div>
+  
   <div class="form-section">
     <h3>Servicios</h3>
     <table id="tablaServicios" style="width: 1200px;">
@@ -1545,14 +1548,14 @@ window.actualizarPrecioDeclaracion = function () {
     const nombreServicio = fila.querySelector("td")?.innerText.toUpperCase();
     if (!nombreServicio.includes("DECLARACIÓN MENSUAL")) return;
 
-    // 🎯 PRECIO UNITARIO = COLUMNA 2
+    // 🎯 PRECIO UNITARIO = COLUMNA 2 (primer input que exista)
     const celdaPrecio = fila.querySelector("td:nth-child(2)");
     if (!celdaPrecio) return;
 
-    const inputPrecio = celdaPrecio.querySelector("input[type='number']");
+    const inputPrecio = celdaPrecio.querySelector("input");
     if (!inputPrecio) return;
 
-    // 🔐 Guardar precio original SOLO una vez
+    // 🔐 Guardar precio original una sola vez
     if (!inputPrecio.dataset.precioOriginal) {
       inputPrecio.dataset.precioOriginal = inputPrecio.value;
     }
@@ -1560,7 +1563,8 @@ window.actualizarPrecioDeclaracion = function () {
     // 🟢 1 auto → restaurar precio original
     if (select.value === "1") {
       inputPrecio.value = inputPrecio.dataset.precioOriginal;
-      inputPrecio.dispatchEvent(new Event("input"));
+      inputPrecio.dispatchEvent(new Event("input", { bubbles: true }));
+      inputPrecio.dispatchEvent(new Event("change", { bubbles: true }));
       return;
     }
 
@@ -1568,7 +1572,8 @@ window.actualizarPrecioDeclaracion = function () {
     const precioNuevo = preciosDeclaracion[select.value];
     if (precioNuevo) {
       inputPrecio.value = precioNuevo;
-      inputPrecio.dispatchEvent(new Event("input"));
+      inputPrecio.dispatchEvent(new Event("input", { bubbles: true }));
+      inputPrecio.dispatchEvent(new Event("change", { bubbles: true }));
     }
   });
 };
@@ -2066,6 +2071,7 @@ if (didiCheckbox) {
 </script>
 </body>
 </html>
+
 
 
 
