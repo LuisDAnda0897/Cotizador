@@ -188,7 +188,7 @@ th {
   font-size: 11pt;
 }
 
-.numero-de-autos h3 {
+.numero de autos {
   color: var(--dorado-oscuro);
   font-size: 10pt;
 }
@@ -1545,37 +1545,32 @@ window.actualizarPrecioDeclaracion = function () {
   const filas = document.querySelectorAll("#tablaServicios tbody tr");
 
   filas.forEach(fila => {
-    const nombreServicio = fila.querySelector("td")?.innerText.toUpperCase();
+    const nombreServicio = fila
+      .querySelector("td")
+      ?.innerText.toUpperCase();
+
     if (!nombreServicio.includes("DECLARACIÓN MENSUAL")) return;
 
-    // 🎯 PRECIO UNITARIO = COLUMNA 2 (primer input que exista)
-    const celdaPrecio = fila.querySelector("td:nth-child(2)");
-    if (!celdaPrecio) return;
-
-    const inputPrecio = celdaPrecio.querySelector("input");
+    // 👉 Precio unitario = columna 2
+    const inputPrecio = fila.querySelector("td:nth-child(2) input");
     if (!inputPrecio) return;
 
-    // 🔐 Guardar precio original una sola vez
+    // Guardar precio original UNA sola vez
     if (!inputPrecio.dataset.precioOriginal) {
       inputPrecio.dataset.precioOriginal = inputPrecio.value;
     }
 
-    // 🟢 1 auto → restaurar precio original
+    // 1 auto → restaurar precio original
     if (select.value === "1") {
       inputPrecio.value = inputPrecio.dataset.precioOriginal;
-      inputPrecio.dispatchEvent(new Event("input", { bubbles: true }));
-      inputPrecio.dispatchEvent(new Event("change", { bubbles: true }));
-      return;
-    }
-
-    // 🟡 2+ autos → precio dinámico
-    const precioNuevo = preciosDeclaracion[select.value];
-    if (precioNuevo) {
-      inputPrecio.value = precioNuevo;
-      inputPrecio.dispatchEvent(new Event("input", { bubbles: true }));
-      inputPrecio.dispatchEvent(new Event("change", { bubbles: true }));
+    } else {
+      // 2+ autos → precio por tabla
+      inputPrecio.value = preciosDeclaracion[select.value];
     }
   });
+
+  // 🔥 ESTO ES LO QUE FALTABA
+  calcularTotales();
 };
   // --- Limpiar formulario ---
   document.getElementById("btnLimpiar").addEventListener("click", function(){
@@ -2071,6 +2066,7 @@ if (didiCheckbox) {
 </script>
 </body>
 </html>
+
 
 
 
