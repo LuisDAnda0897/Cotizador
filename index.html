@@ -969,7 +969,7 @@ const validarRangoPeriodo = () => {
     tdPrecio.textContent = precio.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
     calcularTotal();
 });
-  }
+  
   document.addEventListener("change", function (e) {
   if (e.target.matches(".select-mes, .inicio-mes, .fin-mes, .select-anio, .inicio-anio, .fin-anio")) {
     calcularPagosProporcionales();
@@ -2080,6 +2080,7 @@ if (didiCheckbox) {
 </script>
 </body>
 </html>
+
 
 
 
