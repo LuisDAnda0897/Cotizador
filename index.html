@@ -753,7 +753,6 @@ const productosSoloAnio = [
   // Si el producto NO requiere periodo, actualizamos la visibilidad general y salimos
   if (!esMensual && !esAnualSolo && !esPaqueteAnual) {
     mostrarColumnaPeriodo(false);
-    return;
   }
   // Crear nueva celda de periodo
   celdaPeriodo = document.createElement("td");
@@ -2071,6 +2070,7 @@ document.getElementById("numAutos").addEventListener("change", function () {
 </script>
 </body>
 </html>
+
 
 
 
