@@ -938,11 +938,15 @@ const validarRangoPeriodo = () => {
     tbody.appendChild(fila);
     mostrarColumnaPeriodo(false);
     selectProducto.addEventListener("change", ()=>{
-    const option = selectProducto.selectedOptions[0];
+    const optionSeleccionada = selectProducto.selectedOptions[0];    
     let precio = parseFloat(option.dataset.precio) || 0;
 
 // 💡 Caso especial: Declaración mensual 1 o 2 apps
-  if (option.value === "DECLARACIÓN MENSUAL 1 o 2 APPS") {
+if (
+  optionSeleccionada.text
+    .toUpperCase()
+    .includes("DECLARACIÓN MENSUAL 1 O 2 APPS")
+) {
   const autos = document.getElementById("cantidadAutos")?.value || 1;
   const precioAutos = obtenerPrecioPorAutos(autos);
   if (precioAutos !== null) {
@@ -2091,6 +2095,7 @@ document.getElementById("numAutos").addEventListener("change", function () {
 </script>
 </body>
 </html>
+
 
 
 
