@@ -744,6 +744,34 @@ const productosSoloAnio = [
   if (!esMensual && !esAnualSolo && !esPaqueteAnual) {
     mostrarColumnaPeriodo(false);
     return;
+  const optionSeleccionada = this.selectedOptions[0];
+if (!optionSeleccionada) return;
+
+// precio base SIEMPRE desde dataset
+let precio = parseFloat(optionSeleccionada.dataset.precio) || 0;
+
+// 🟡 CASO ESPECIAL: Declaración Mensual 1 o 2 Apps
+if (
+  optionSeleccionada.textContent
+    .toUpperCase()
+    .includes("DECLARACIÓN MENSUAL 1 O 2 APPS")
+) {
+  const autos = document.getElementById("cantidadAutos")?.value || "1";
+  const precioAutos = obtenerPrecioPorAutos(autos);
+  if (precioAutos !== null) {
+    precio = precioAutos;
+  }
+}
+
+// actualizar celda precio
+tdPrecio.dataset.precio = precio;
+tdPrecio.textContent = precio.toLocaleString("es-MX", {
+  style: "currency",
+  currency: "MXN"
+});
+
+// recalcular totales
+calcularTotal();
   }
 
   // Crear nueva celda de periodo
@@ -937,34 +965,8 @@ const validarRangoPeriodo = () => {
 }
     tbody.appendChild(fila);
     mostrarColumnaPeriodo(false);
-    
-    // === PRECIO DEL SERVICIO ===
-const optionSeleccionada = selectProducto.selectedOptions[0];
-if (!optionSeleccionada) return;
-
-let precio = parseFloat(optionSeleccionada.dataset.precio) || 0;
-
-// 💡 Caso especial: Declaración mensual 1 o 2 apps
-if (
-  optionSeleccionada.text
-    .toUpperCase()
-    .includes("DECLARACIÓN MENSUAL 1 O 2 APPS")
-) {
-  const autos = document.getElementById("cantidadAutos")?.value || 1;
-  const precioAutos = obtenerPrecioPorAutos(autos);
-  if (precioAutos !== null) {
-    precio = precioAutos;
   }
-}
-
-tdPrecio.dataset.precio = precio;
-tdPrecio.textContent = precio.toLocaleString("es-MX", {
-  style: "currency",
-  currency: "MXN"
-});
-
-calcularTotal();
-  }
+  
   document.addEventListener("change", function (e) {
   if (e.target.matches(".select-mes, .inicio-mes, .fin-mes, .select-anio, .inicio-anio, .fin-anio")) {
     calcularPagosProporcionales();
