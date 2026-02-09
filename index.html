@@ -939,7 +939,7 @@ const validarRangoPeriodo = () => {
     mostrarColumnaPeriodo(false);
     
     // === PRECIO DEL SERVICIO ===
-const optionSeleccionada = this.selectedOptions[0];
+const optionSeleccionada = selectProducto.selectedOptions[0];
 if (!optionSeleccionada) return;
 
 let precio = parseFloat(optionSeleccionada.dataset.precio) || 0;
@@ -2074,6 +2074,7 @@ document.getElementById("numAutos").addEventListener("change", function () {
 </script>
 </body>
 </html>
+
 
 
 
