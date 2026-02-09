@@ -962,9 +962,10 @@ tdPrecio.textContent = precio.toLocaleString("es-MX", {
 const option = selectProducto.selectedOptions[0];
 if (!option) return;
 
-// Precio base del servicio
-let precio = parseFloat(option.dataset.precio || option.value) || 0;
-
+      precio = parseFloat(
+  optionSeleccionada.dataset.precio || optionSeleccionada.value
+) || precio;
+      
 // 🟡 CASO ESPECIAL: Declaración mensual 1 o 2 apps
 if (option.text.toUpperCase().includes("DECLARACIÓN MENSUAL 1 O 2 APPS")) {
   const autos = document.getElementById("cantidadAutos")?.value || 1;
@@ -2095,6 +2096,7 @@ document.getElementById("numAutos").addEventListener("change", function () {
 </script>
 </body>
 </html>
+
 
 
 
