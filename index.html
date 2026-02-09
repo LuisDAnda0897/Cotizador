@@ -623,7 +623,7 @@ document.addEventListener("DOMContentLoaded", function() {
   const serviciosDisponibles = [
   { nombre: "PAQUETE INICIAL", precio: 799 },
   { nombre: "DECLARACIÓN MENSUAL DiDi ELITE", precio: 370 },
-  { nombre: "DECLARACIÓN MENSUAL 1 O 2 APPS", tipo: "declaracion" },
+  { nombre: "DECLARACIÓN MENSUAL 1 O 2 APPS", precio: 0, tipo: "declaracion" },
   { nombre: "DECLARACIÓN MENSUAL 3 O 4 APPS", precio: 425 },
   { nombre: "APP ADICIONAL DECLARACIÓN", precio: 50 },
   { nombre: "DECLARACIÓN COMPLEMENTARIA", precio: 69 },
@@ -669,7 +669,11 @@ const productosSoloAnio = [
   "DECLARACIÓN ANUAL SWARTZ (80%)",
   "DECLRACIÓN ANUAL SWARTZ - PLATAFORMA + SALARIOS",
   "DECLARACIÓN ANUAL DESPACHO EXTERNO (1 O 2 APPS)",
-  "DECLARACIÓN ANUAL DESPACHO EXTERNO (PLATAFORMA + SALARIOS)"
+  "DECLARACIÓN ANUAL DESPACHO EXTERNO (PLATAFORMA + SALARIOS)",
+  "PAQUETE 4 DECLARACIONES",
+  "PAQUETE 6 DECLARACIONES",
+  "PAQUETE 8 DECLARACIONES",
+  "PAQUETE 10 DECLARACIONES"
 ];
 
   function normalizarTexto(txt) {
@@ -703,14 +707,18 @@ const productosSoloAnio = [
     document.getElementById("correoAsesor").textContent = "Email: " + correo;
   });
   function obtenerPrecioServicio(nombreServicio) {
-  // Caso especial
-  if (nombreServicio === "") {
+  if (
+    normalizarTexto(nombreServicio)
+      .includes("declaracion mensual 1 o 2 apps")
+  ) {
     const autos = parseInt(document.getElementById("cantidadAutos")?.value) || 1;
     return obtenerPrecioPorAutos(autos) || 0;
   }
 
-  // Servicios normales
-  const servicio = serviciosDisponibles.find(s => s.nombre === nombreServicio);
+  const servicio = serviciosDisponibles.find(
+    s => normalizarTexto(s.nombre) === normalizarTexto(nombreServicio)
+  );
+
   return servicio?.precio || 0;
 }
   // --- Agregar servicio ---
@@ -870,33 +878,6 @@ selectProducto.addEventListener("change", function () {
   calcularTotal();
 });
     tdCantidad.appendChild(inputCantidad);
-    selectProducto.addEventListener("change", () => {
-  const option = selectProducto.selectedOptions[0];
-  if (!option) return;
-
-  let precio = parseFloat(option.dataset.precio) || 0;
-
-  // 🟡 
-  if (
-    option.textContent
-      .toUpperCase()
-      .includes("")
-  ) {
-    const autos = document.getElementById("cantidadAutos")?.value || "1";
-    const precioAutos = obtenerPrecioPorAutos(autos);
-    if (precioAutos !== null) {
-      precio = precioAutos;
-    }
-  }
-
-  tdPrecio.dataset.precio = precio;
-  tdPrecio.textContent = precio.toLocaleString("es-MX", {
-    style: "currency",
-    currency: "MXN"
-  });
-
-  calcularTotal();
-});
     const tdSubtotal = document.createElement("td"); tdSubtotal.textContent = "0";
     const tdAccion = document.createElement("td");
     const btnEliminar = document.createElement("button");
@@ -2123,6 +2104,7 @@ document.getElementById("numAutos").addEventListener("change", function () {
 </script>
 </body>
 </html>
+
 
 
 
