@@ -863,13 +863,41 @@ selectProducto.addEventListener("change", function () {
 
   calcularTotal();
 });
-    const tdPrecio = document.createElement("td"); tdPrecio.textContent = "0";
+    const tdPrecio = document.createElement("td");
+    tdPrecio.dataset.precio = 0;   // 👈 CLAVE
+    tdPrecio.textContent = "0";
     const tdCantidad = document.createElement("td");
     const inputCantidad = document.createElement("input");
     inputCantidad.type="number"; inputCantidad.value=1; inputCantidad.min=1; inputCantidad.style.width="50px";
     inputCantidad.addEventListener("input", calcularTotal);
     tdCantidad.appendChild(inputCantidad);
+    selectProducto.addEventListener("change", () => {
+  const option = selectProducto.selectedOptions[0];
+  if (!option) return;
 
+  let precio = parseFloat(option.dataset.precio) || 0;
+
+  // 🟡 Declaración Mensual 1 o 2 Apps
+  if (
+    option.textContent
+      .toUpperCase()
+      .includes("DECLARACIÓN MENSUAL 1 O 2 APPS")
+  ) {
+    const autos = document.getElementById("cantidadAutos")?.value || "1";
+    const precioAutos = obtenerPrecioPorAutos(autos);
+    if (precioAutos !== null) {
+      precio = precioAutos;
+    }
+  }
+
+  tdPrecio.dataset.precio = precio;
+  tdPrecio.textContent = precio.toLocaleString("es-MX", {
+    style: "currency",
+    currency: "MXN"
+  });
+
+  calcularTotal();
+});
     const tdSubtotal = document.createElement("td"); tdSubtotal.textContent = "0";
     const tdAccion = document.createElement("td");
     const btnEliminar = document.createElement("button");
@@ -2070,6 +2098,7 @@ document.getElementById("numAutos").addEventListener("change", function () {
 </script>
 </body>
 </html>
+
 
 
 
