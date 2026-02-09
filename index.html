@@ -937,9 +937,12 @@ const validarRangoPeriodo = () => {
 }
     tbody.appendChild(fila);
     mostrarColumnaPeriodo(false);
-    selectProducto.addEventListener("change", ()=>{
-    const optionSeleccionada = selectProducto.selectedOptions[0];    
-    let precio = parseFloat(option.dataset.precio) || 0;
+    
+    // === PRECIO DEL SERVICIO ===
+const optionSeleccionada = this.selectedOptions[0];
+if (!optionSeleccionada) return;
+
+let precio = parseFloat(optionSeleccionada.dataset.precio) || 0;
 
 // 💡 Caso especial: Declaración mensual 1 o 2 apps
 if (
@@ -953,39 +956,14 @@ if (
     precio = precioAutos;
   }
 }
-// Guardar precio real
+
 tdPrecio.dataset.precio = precio;
 tdPrecio.textContent = precio.toLocaleString("es-MX", {
   style: "currency",
   currency: "MXN"
 });
-const option = selectProducto.selectedOptions[0];
-if (!option) return;
 
-      precio = parseFloat(
-  optionSeleccionada.dataset.precio || optionSeleccionada.value
-) || precio;
-      
-// 🟡 CASO ESPECIAL: Declaración mensual 1 o 2 apps
-if (option.text.toUpperCase().includes("DECLARACIÓN MENSUAL 1 O 2 APPS")) {
-  const autos = document.getElementById("cantidadAutos")?.value || 1;
-  const precioAutos = obtenerPrecioPorAutos(autos);
-  if (precioAutos !== null) {
-    precio = precioAutos;
-  }
-}
-
-// Actualizar precio REAL de la fila
-tdPrecio.dataset.precio = precio;
-tdPrecio.textContent = precio.toLocaleString("es-MX", {
-  style: "currency",
-  currency: "MXN"
-});
 calcularTotal();
-    tdPrecio.dataset.precio = precio; // Guardamos el precio real
-    tdPrecio.textContent = precio.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-    calcularTotal();
-});
   }
   document.addEventListener("change", function (e) {
   if (e.target.matches(".select-mes, .inicio-mes, .fin-mes, .select-anio, .inicio-anio, .fin-anio")) {
@@ -2096,6 +2074,7 @@ document.getElementById("numAutos").addEventListener("change", function () {
 </script>
 </body>
 </html>
+
 
 
 
