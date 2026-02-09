@@ -718,7 +718,8 @@ const productosSoloAnio = [
     selectProducto.innerHTML = '<option value="">Seleccione</option>';
     serviciosDisponibles.forEach(s=>{
       const opt = document.createElement("option");
-      opt.value = s.precio;
+      opt.value = s.nombre;          // identificador
+      opt.dataset.precio = s.precio; // precio base
       opt.textContent = s.nombre;
       selectProducto.appendChild(opt);
     });
@@ -885,7 +886,7 @@ function actualizarAlineacionFilas() {
 }
 
 // --- Cada vez que cambie el producto, recalculamos la alineación ---
-selectProducto.addEventListener("change", actualizarAlineacionFilas);
+("change", actualizarAlineacionFilas);
 btnEliminar.addEventListener("click", actualizarAlineacionFilas);
      // Verificar si el producto requiere periodo, mes-año o solo año
 const productoSeleccionado = tdProducto.querySelector("select")?.selectedOptions[0]?.text?.trim() || "";
@@ -937,7 +938,25 @@ const validarRangoPeriodo = () => {
     tbody.appendChild(fila);
     mostrarColumnaPeriodo(false);
     selectProducto.addEventListener("change", ()=>{
-    const precio = parseFloat(selectProducto.value) || 0;
+    const option = selectProducto.selectedOptions[0];
+    let precio = parseFloat(option.dataset.precio) || 0;
+
+// 💡 Caso especial: Declaración mensual 1 o 2 apps
+  if (option.value === "DECLARACIÓN MENSUAL 1 o 2 APPS") {
+  const autos = document.getElementById("cantidadAutos")?.value || 1;
+  const precioAutos = obtenerPrecioPorAutos(autos);
+  if (precioAutos !== null) {
+    precio = precioAutos;
+  }
+}
+// Guardar precio real
+tdPrecio.dataset.precio = precio;
+tdPrecio.textContent = precio.toLocaleString("es-MX", {
+  style: "currency",
+  currency: "MXN"
+});
+
+calcularTotal();
     tdPrecio.dataset.precio = precio; // Guardamos el precio real
     tdPrecio.textContent = precio.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
     calcularTotal();
@@ -950,6 +969,16 @@ const validarRangoPeriodo = () => {
 });
   document.getElementById("btnAgregarServicio").addEventListener("click", agregarFila);
   document.getElementById("descuento").addEventListener("input", calcularTotal);
+  document.getElementById("cantidadAutos")?.addEventListener("change", () => {
+  document.querySelectorAll("#tablaServicios tbody tr").forEach(tr => {
+    const select = tr.querySelector("select");
+    if (!select) return;
+
+    if (select.value === "DECLARACIÓN MENSUAL 1 o 2 APPS") {
+      select.dispatchEvent(new Event("change"));
+    }
+  });
+});
 
   // --- Calcular totales (versión robusta) ---
   function calcularTotal(){
@@ -2043,6 +2072,7 @@ document.getElementById("numAutos").addEventListener("change", function () {
 </script>
 </body>
 </html>
+
 
 
 
