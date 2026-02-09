@@ -588,9 +588,9 @@ th.periodo-header {
 </style>
 <script>
     async function toBase64(url) {
-  const response = await fetch(url);
-  const blob = await response.blob();
-  return new Promise((resolve) => {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onloadend = () => resolve(reader.result);
     reader.readAsDataURL(blob);
@@ -955,7 +955,27 @@ tdPrecio.textContent = precio.toLocaleString("es-MX", {
   style: "currency",
   currency: "MXN"
 });
+const option = selectProducto.selectedOptions[0];
+if (!option) return;
 
+// Precio base del servicio
+let precio = parseFloat(option.dataset.precio || option.value) || 0;
+
+// 🟡 CASO ESPECIAL: Declaración mensual 1 o 2 apps
+if (option.text.toUpperCase().includes("DECLARACIÓN MENSUAL 1 O 2 APPS")) {
+  const autos = document.getElementById("cantidadAutos")?.value || 1;
+  const precioAutos = obtenerPrecioPorAutos(autos);
+  if (precioAutos !== null) {
+    precio = precioAutos;
+  }
+}
+
+// Actualizar precio REAL de la fila
+tdPrecio.dataset.precio = precio;
+tdPrecio.textContent = precio.toLocaleString("es-MX", {
+  style: "currency",
+  currency: "MXN"
+});
 calcularTotal();
     tdPrecio.dataset.precio = precio; // Guardamos el precio real
     tdPrecio.textContent = precio.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
@@ -2055,7 +2075,6 @@ function obtenerPrecioPorAutos(autos) {
 
   return null;
 }
-
 document.getElementById("numAutos").addEventListener("change", function () {
   const nuevoPrecio = obtenerPrecioPorAutos(this.value);
   document.querySelectorAll("#tablaServicios tbody tr").forEach(tr => {
@@ -2072,6 +2091,7 @@ document.getElementById("numAutos").addEventListener("change", function () {
 </script>
 </body>
 </html>
+
 
 
 
