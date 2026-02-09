@@ -623,7 +623,7 @@ document.addEventListener("DOMContentLoaded", function() {
   const serviciosDisponibles = [
   { nombre: "PAQUETE INICIAL", precio: 799 },
   { nombre: "DECLARACIÓN MENSUAL DiDi ELITE", precio: 370 },
-  { nombre: "DECLARACIÓN MENSUAL 1 o 2 APPS", precio: 375 },
+  { nombre: "DECLARACIÓN MENSUAL 1 o 2 APPS", tipo: "declaracion" },
   { nombre: "DECLARACIÓN MENSUAL 3 o 4 APPS", precio: 425 },
   { nombre: "APP ADICIONAL DECLARACIÓN", precio: 50 },
   { nombre: "DECLARACIÓN COMPLEMENTARIA", precio: 69 },
@@ -706,7 +706,17 @@ const productosSoloAnio = [
     const correo = this.value || "hola@swartz.mx";
     document.getElementById("correoAsesor").textContent = "Email: " + correo;
   });
+  function obtenerPrecioServicio(nombreServicio) {
+  // Caso especial
+  if (nombreServicio === "DECLARACIÓN MENSUAL 1 O 2 APPS") {
+    const autos = parseInt(document.getElementById("cantidadAutos")?.value) || 1;
+    return obtenerPrecioPorAutos(autos) || 0;
+  }
 
+  // Servicios normales
+  const servicio = serviciosDisponibles.find(s => s.nombre === nombreServicio);
+  return servicio?.precio || 0;
+}
   // --- Agregar servicio ---
   function agregarFila(){
     const tbody = document.querySelector("#tablaServicios tbody");
@@ -744,36 +754,7 @@ const productosSoloAnio = [
   if (!esMensual && !esAnualSolo && !esPaqueteAnual) {
     mostrarColumnaPeriodo(false);
     return;
-  const optionSeleccionada = this.selectedOptions[0];
-if (!optionSeleccionada) return;
-
-// precio base SIEMPRE desde dataset
-let precio = parseFloat(optionSeleccionada.dataset.precio) || 0;
-
-// 🟡 CASO ESPECIAL: Declaración Mensual 1 o 2 Apps
-if (
-  optionSeleccionada.textContent
-    .toUpperCase()
-    .includes("DECLARACIÓN MENSUAL 1 O 2 APPS")
-) {
-  const autos = document.getElementById("cantidadAutos")?.value || "1";
-  const precioAutos = obtenerPrecioPorAutos(autos);
-  if (precioAutos !== null) {
-    precio = precioAutos;
   }
-}
-
-// actualizar celda precio
-tdPrecio.dataset.precio = precio;
-tdPrecio.textContent = precio.toLocaleString("es-MX", {
-  style: "currency",
-  currency: "MXN"
-});
-
-// recalcular totales
-calcularTotal();
-  }
-
   // Crear nueva celda de periodo
   celdaPeriodo = document.createElement("td");
   celdaPeriodo.classList.add("celda-periodo");
@@ -868,7 +849,21 @@ calcularTotal();
   actualizarPeriodo();
   cantidadInput.addEventListener("input", actualizarPeriodo);
 });
+selectProducto.addEventListener("change", function () {
+  const option = this.selectedOptions[0];
+  if (!option) return;
 
+  const nombreServicio = option.textContent.trim();
+  const precio = obtenerPrecioServicio(nombreServicio);
+
+  tdPrecio.dataset.precio = precio;
+  tdPrecio.textContent = precio.toLocaleString("es-MX", {
+    style: "currency",
+    currency: "MXN"
+  });
+
+  calcularTotal();
+});
     const tdPrecio = document.createElement("td"); tdPrecio.textContent = "0";
     const tdCantidad = document.createElement("td");
     const inputCantidad = document.createElement("input");
@@ -2076,6 +2071,7 @@ document.getElementById("numAutos").addEventListener("change", function () {
 </script>
 </body>
 </html>
+
 
 
 
