@@ -623,8 +623,8 @@ document.addEventListener("DOMContentLoaded", function() {
   const serviciosDisponibles = [
   { nombre: "PAQUETE INICIAL", precio: 799 },
   { nombre: "DECLARACIÓN MENSUAL DiDi ELITE", precio: 370 },
-  { nombre: "DECLARACIÓN MENSUAL 1 o 2 APPS", tipo: "declaracion" },
-  { nombre: "DECLARACIÓN MENSUAL 3 o 4 APPS", precio: 425 },
+  { nombre: "DECLARACIÓN MENSUAL 1 O 2 APPS", tipo: "declaracion" },
+  { nombre: "DECLARACIÓN MENSUAL 3 O 4 APPS", precio: 425 },
   { nombre: "APP ADICIONAL DECLARACIÓN", precio: 50 },
   { nombre: "DECLARACIÓN COMPLEMENTARIA", precio: 69 },
   { nombre: "DECLARACIÓN EN CEROS", precio: 199 },
@@ -657,15 +657,11 @@ const productosPeriodoMesAnio = [
   "DECLARACIÓN MENSUAL DiDi ELITE",
   "DECLARACIÓN COMPLEMENTARIA",
   "DECLARACIÓN EN CEROS",
-  "DECLARACIÓN MENSUAL 1 o 2 APPS",
+  "DECLARACIÓN MENSUAL 1 O 2 APPS",
   "DECLARACIÓN 612/626 PRECIO BASE",
   "DECLARACIÓN RIF",
-  "PAQUETE ANUAL 1 o 2 APPS",
+  "PAQUETE ANUAL 1 O 2 APPS",
   "PAQUETE INICIAL",
-  "PAQUETE 4 DECLARACIONES",
-  "PAQUETE 6 DECLARACIONES", 
-  "PAQUETE 8 DECLARACIONES", 
-  "PAQUETE 10 DECLARACIONES"
 ];
 
 const productosSoloAnio = [
@@ -708,7 +704,7 @@ const productosSoloAnio = [
   });
   function obtenerPrecioServicio(nombreServicio) {
   // Caso especial
-  if (nombreServicio === "DECLARACIÓN MENSUAL 1 O 2 APPS") {
+  if (nombreServicio === "") {
     const autos = parseInt(document.getElementById("cantidadAutos")?.value) || 1;
     return obtenerPrecioPorAutos(autos) || 0;
   }
@@ -880,11 +876,11 @@ selectProducto.addEventListener("change", function () {
 
   let precio = parseFloat(option.dataset.precio) || 0;
 
-  // 🟡 Declaración Mensual 1 o 2 Apps
+  // 🟡 
   if (
     option.textContent
       .toUpperCase()
-      .includes("DECLARACIÓN MENSUAL 1 O 2 APPS")
+      .includes("")
   ) {
     const autos = document.getElementById("cantidadAutos")?.value || "1";
     const precioAutos = obtenerPrecioPorAutos(autos);
@@ -1004,7 +1000,7 @@ const validarRangoPeriodo = () => {
     const select = tr.querySelector("select");
     if (!select) return;
 
-    if (select.value === "DECLARACIÓN MENSUAL 1 o 2 APPS") {
+    if (select.value === "") {
       select.dispatchEvent(new Event("change"));
     }
   });
@@ -2119,7 +2115,7 @@ document.getElementById("numAutos").addEventListener("change", function () {
 
     const texto = select.options[select.selectedIndex]?.text || "";
 
-    if (texto.toUpperCase().includes("DECLARACIÓN MENSUAL 1 o 2 APPS") && nuevoPrecio !== null) {
+    if (texto.toUpperCase().includes("DECLARACIÓN MENSUAL 1 O 2 APPS") && nuevoPrecio !== null) {
       select.value = nuevoPrecio;
     }
   });
@@ -2127,6 +2123,7 @@ document.getElementById("numAutos").addEventListener("change", function () {
 </script>
 </body>
 </html>
+
 
 
 
