@@ -1029,7 +1029,7 @@ function recalcularPrecioDeclaracionPorAutos(fila) {
       .toUpperCase()
       .includes("DECLARACIÓN MENSUAL 1 O 2 APPS")
   ) {
-    const autos = document.getElementById("cantidadAutos")?.value || "1";
+    const autos = parseInt(document.getElementById("cantidadAutos")?.value, 10) || 1;
     const precio = obtenerPrecioPorAutos(autos);
 
     tdPrecio.dataset.precio = precio || 0;
@@ -2134,6 +2134,7 @@ document.getElementById("numAutos").addEventListener("change", function () {
 </script>
 </body>
 </html>
+
 
 
 
