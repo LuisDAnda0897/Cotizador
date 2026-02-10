@@ -711,7 +711,7 @@ const productosSoloAnio = [
     normalizarTexto(nombreServicio)
       .includes("declaracion mensual 1 o 2 apps")
   ) {
-    const autos = parseInt(document.getElementById("cantidadAutos")?.value) || 1;
+    const autos = parseInt(document.getElementById("numAutos")?.value) || 1;
     return obtenerPrecioPorAutos(autos) || 0;
   }
 
@@ -979,7 +979,7 @@ function actualizarPrecioDeclaracionPorAutos(fila) {
   const nombre = option.textContent.toUpperCase();
   if (!nombre.includes("DECLARACIÓN MENSUAL 1 O 2 APPS")) return;
 
-  const autos = parseInt(document.getElementById("cantidadAutos")?.value) || 1;
+  const autos = parseInt(document.getElementById("numAutos")?.value) || 1;
   const precio = obtenerPrecioPorAutos(String(autos));
 
   if (precio !== null) {
@@ -990,7 +990,7 @@ function actualizarPrecioDeclaracionPorAutos(fila) {
     });
   }
 }
-  const autosInput = document.getElementById("cantidadAutos");
+  const autosInput = document.getElementById("numAutos");
 if (autosInput) {
   autosInput.addEventListener("input", () => {
     document.querySelectorAll("#tablaServicios tbody tr").forEach(fila => {
@@ -1006,7 +1006,7 @@ if (autosInput) {
 });
   document.getElementById("btnAgregarServicio").addEventListener("click", agregarFila);
   document.getElementById("descuento").addEventListener("input", calcularTotal);
-  document.getElementById("cantidadAutos")?.addEventListener("change", () => {
+  document.getElementById("numAutos")?.addEventListener("change", () => {
   document.querySelectorAll("#tablaServicios tbody tr").forEach(tr => {
     const select = tr.querySelector("select");
     if (!select) return;
@@ -2111,7 +2111,7 @@ if (didiCheckbox) {
 function obtenerPrecioPorAutos(autos) {
   autos = parseInt(autos);
 
-  if (autos <= 1) return null;
+  if (!autos || autos <= 1) return 375; // ✅ PRECIO BASE (AJUSTA SI QUIERES)
   if (autos === 2) return 380;
   if (autos === 3) return 399;
   if (autos === 4) return 449;
@@ -2121,10 +2121,10 @@ function obtenerPrecioPorAutos(autos) {
   if (autos >= 9 && autos <= 10) return 649;
   if (autos >= 11) return 699;
 
-  return null;
+  return 375;
 }
-  document.getElementById("numAutos").addEventListener("change", function () {
-  document.querySelectorAll("#tablaServicios tbody tr").forEach(tr => {
+document.getElementById("numAutos").addEventListener("change", function () {
+document.querySelectorAll("#tablaServicios tbody tr").forEach(tr => {
     recalcularPrecioDeclaracionPorAutos(tr);
   });
   calcularTotal();
@@ -2132,6 +2132,7 @@ function obtenerPrecioPorAutos(autos) {
 </script>
 </body>
 </html>
+
 
 
 
