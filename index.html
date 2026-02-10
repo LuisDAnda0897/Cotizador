@@ -821,27 +821,34 @@ const productosSoloAnio = [
 
   // --- Validación del rango seleccionado (igual que antes)
   function verificarRango() {
-    const inicioMesEl = celdaPeriodo.querySelector(".inicio-mes");
-    const inicioAnioEl = celdaPeriodo.querySelector(".inicio-anio");
-    const finMesEl = celdaPeriodo.querySelector(".fin-mes");
-    const finAnioEl = celdaPeriodo.querySelector(".fin-anio");
+  const inicioMesEl = celdaPeriodo.querySelector(".inicio-mes");
+  const inicioAnioEl = celdaPeriodo.querySelector(".inicio-anio");
+  const finMesEl = celdaPeriodo.querySelector(".fin-mes");
+  const finAnioEl = celdaPeriodo.querySelector(".fin-anio");
 
-    if (inicioMesEl && inicioAnioEl && finMesEl && finAnioEl) {
-      const mi = parseInt(inicioMesEl.value);
-      const ai = parseInt(inicioAnioEl.value);
-      const mf = parseInt(finMesEl.value);
-      const af = parseInt(finAnioEl.value);
+  if (!inicioMesEl || !inicioAnioEl || !finMesEl || !finAnioEl) return;
 
-      const diferenciaMeses = (af - ai) * 12 + (mf - mi) + 1;
-      const maxMeses = esAnual ? (12 * cantidadActual) : cantidadActual;
+  const mi = parseInt(inicioMesEl.value);
+  const ai = parseInt(inicioAnioEl.value);
+  const mf = parseInt(finMesEl.value);
+  const af = parseInt(finAnioEl.value);
 
-      if (diferenciaMeses <= 0 || diferenciaMeses > maxMeses) {
-        mostrarMensajeUX(`⚠️ El rango seleccionado excede los ${maxMeses} meses permitidos.`);
-        finMesEl.value = inicioMesEl.value;
-        finAnioEl.value = inicioAnioEl.value;
-      }
-    }
+  // 🛑 Aún no está completo → no validar
+  if ([mi, ai, mf, af].some(v => isNaN(v))) return;
+
+  const diferenciaMeses = (af - ai) * 12 + (mf - mi) + 1;
+  const maxMeses = esAnual ? (12 * cantidadActual) : cantidadActual;
+
+  // 🟢 Permitimos cruzar año mientras sea válido
+  if (diferenciaMeses <= 0) {
+    mostrarMensajeUX("⚠️ El periodo final no puede ser anterior al inicial.");
+    return;
   }
+
+  if (diferenciaMeses > maxMeses) {
+    mostrarMensajeUX(`⚠️ El rango excede los ${maxMeses} meses permitidos.`);
+  }
+}
 
   const selects = celdaPeriodo.querySelectorAll(".inicio-mes, .inicio-anio, .fin-mes, .fin-anio");
   selects.forEach(sel => sel.addEventListener("change", verificarRango));
@@ -2132,6 +2139,7 @@ document.querySelectorAll("#tablaServicios tbody tr").forEach(tr => {
 </script>
 </body>
 </html>
+
 
 
 
