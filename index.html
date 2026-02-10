@@ -662,6 +662,10 @@ const productosPeriodoMesAnio = [
   "DECLARACIÓN RIF",
   "PAQUETE ANUAL 1 O 2 APPS",
   "PAQUETE INICIAL",
+  "PAQUETE 4 DECLARACIONES",
+  "PAQUETE 6 DECLARACIONES",
+  "PAQUETE 8 DECLARACIONES",
+  "PAQUETE 10 DECLARACIONES"
 ];
 
 const productosSoloAnio = [
@@ -669,11 +673,7 @@ const productosSoloAnio = [
   "DECLARACIÓN ANUAL SWARTZ (80%)",
   "DECLRACIÓN ANUAL SWARTZ - PLATAFORMA + SALARIOS",
   "DECLARACIÓN ANUAL DESPACHO EXTERNO (1 O 2 APPS)",
-  "DECLARACIÓN ANUAL DESPACHO EXTERNO (PLATAFORMA + SALARIOS)",
-  "PAQUETE 4 DECLARACIONES",
-  "PAQUETE 6 DECLARACIONES",
-  "PAQUETE 8 DECLARACIONES",
-  "PAQUETE 10 DECLARACIONES"
+  "DECLARACIÓN ANUAL DESPACHO EXTERNO (PLATAFORMA + SALARIOS)"
 ];
 
   function normalizarTexto(txt) {
@@ -746,7 +746,7 @@ const productosSoloAnio = [
   const cantidad = parseInt(cantidadInput.value) || 1;
 
   // Determinar si requiere rango o año o mes/año
-  const esPaqueteAnual = ["PAQUETE ANUAL 1 o 2 APPS"].includes(productoSeleccionado);
+  const esPaqueteAnual = ["PAQUETE ANUAL 1 o 2 APPS","PAQUETE 4 DECLARACIONES", "PAQUETE 6 DECLARACIONES", "PAQUETE 8 DECLARACIONES", "PAQUETE 10 DECLARACIONES"].includes(productoSeleccionado);
   const esMensual = productosPeriodoMesAnio.includes(productoSeleccionado) && !esPaqueteAnual;
   const esAnualSolo = productosSoloAnio.includes(productoSeleccionado);
 
@@ -2132,6 +2132,7 @@ document.querySelectorAll("#tablaServicios tbody tr").forEach(tr => {
 </script>
 </body>
 </html>
+
 
 
 
