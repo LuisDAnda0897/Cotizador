@@ -864,7 +864,7 @@ selectProducto.addEventListener("change", function () {
     style: "currency",
     currency: "MXN"
   });
-
+  actualizarPrecioDeclaracionPorAutos(fila);
   calcularTotal();
 });
     const tdPrecio = document.createElement("td");
@@ -968,7 +968,37 @@ const validarRangoPeriodo = () => {
     tbody.appendChild(fila);
     mostrarColumnaPeriodo(false);
   }
-  
+function actualizarPrecioDeclaracionPorAutos(fila) {
+  const select = fila.querySelector("select");
+  const tdPrecio = fila.cells[1];
+  if (!select || !tdPrecio) return;
+
+  const option = select.selectedOptions[0];
+  if (!option) return;
+
+  const nombre = option.textContent.toUpperCase();
+  if (!nombre.includes("DECLARACIÓN MENSUAL 1 O 2 APPS")) return;
+
+  const autos = parseInt(document.getElementById("cantidadAutos")?.value) || 1;
+  const precio = obtenerPrecioPorAutos(String(autos));
+
+  if (precio !== null) {
+    tdPrecio.dataset.precio = precio;
+    tdPrecio.textContent = precio.toLocaleString("es-MX", {
+      style: "currency",
+      currency: "MXN"
+    });
+  }
+}
+  const autosInput = document.getElementById("cantidadAutos");
+if (autosInput) {
+  autosInput.addEventListener("input", () => {
+    document.querySelectorAll("#tablaServicios tbody tr").forEach(fila => {
+      actualizarPrecioDeclaracionPorAutos(fila);
+    });
+    calcularTotal();
+  });
+}
   document.addEventListener("change", function (e) {
   if (e.target.matches(".select-mes, .inicio-mes, .fin-mes, .select-anio, .inicio-anio, .fin-anio")) {
     calcularPagosProporcionales();
@@ -2104,6 +2134,7 @@ document.getElementById("numAutos").addEventListener("change", function () {
 </script>
 </body>
 </html>
+
 
 
 
