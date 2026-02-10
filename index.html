@@ -874,8 +874,8 @@ selectProducto.addEventListener("change", function () {
     const inputCantidad = document.createElement("input");
     inputCantidad.type="number"; inputCantidad.value=1; inputCantidad.min=1; inputCantidad.style.width="50px";
     inputCantidad.addEventListener("input", () => {
-  recalcularPrecioDeclaracionPorAutos(fila);
-  calcularTotal();
+      recalcularPrecioDeclaracionPorAutos(fila);
+      calcularTotal();
 });
     tdCantidad.appendChild(inputCantidad);
     const tdSubtotal = document.createElement("td"); tdSubtotal.textContent = "0";
@@ -1029,14 +1029,19 @@ function recalcularPrecioDeclaracionPorAutos(fila) {
       .toUpperCase()
       .includes("DECLARACIÓN MENSUAL 1 O 2 APPS")
   ) {
-    const autos = parseInt(document.getElementById("cantidadAutos")?.value, 10) || 1;
+    const autos = parseInt(document.getElementById("numAutos")?.value) || 1;
     const precio = obtenerPrecioPorAutos(autos);
 
-    tdPrecio.dataset.precio = precio || 0;
-    tdPrecio.textContent = (precio || 0).toLocaleString("es-MX", {
-      style: "currency",
-      currency: "MXN"
-    });
+    if (precio !== null) {
+      tdPrecio.dataset.precio = precio;
+      tdPrecio.textContent = precio.toLocaleString("es-MX", {
+        style: "currency",
+        currency: "MXN"
+      });
+    } else {
+      tdPrecio.dataset.precio = 0;
+      tdPrecio.textContent = "$0.00";
+    }
   }
 }
   selectProducto.addEventListener("change", function () {
@@ -2118,22 +2123,16 @@ function obtenerPrecioPorAutos(autos) {
 
   return null;
 }
-document.getElementById("numAutos").addEventListener("change", function () {
-  const nuevoPrecio = obtenerPrecioPorAutos(this.value);
+  document.getElementById("numAutos").addEventListener("change", function () {
   document.querySelectorAll("#tablaServicios tbody tr").forEach(tr => {
-    const select = tr.querySelector("select");
-    if (!select) return;
-
-    const texto = select.options[select.selectedIndex]?.text || "";
-
-    if (texto.toUpperCase().includes("DECLARACIÓN MENSUAL 1 O 2 APPS") && nuevoPrecio !== null) {
-      select.value = nuevoPrecio;
-    }
+    recalcularPrecioDeclaracionPorAutos(tr);
   });
+  calcularTotal();
 });
 </script>
 </body>
 </html>
+
 
 
 
