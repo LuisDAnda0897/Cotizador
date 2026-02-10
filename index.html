@@ -837,7 +837,14 @@ const productosSoloAnio = [
   if ([mi, ai, mf, af].some(v => isNaN(v))) return;
 
   const diferenciaMeses = (af - ai) * 12 + (mf - mi) + 1;
-  const maxMeses = esAnual ? (12 * cantidadActual) : cantidadActual;
+  let maxMeses = cantidadActual; // default
+
+// 🧠 Detectar paquete específico por nombre
+if (productoSeleccionado === "PAQUETE 4 DECLARACIONES") maxMeses = 4 * cantidadActual;
+else if (productoSeleccionado === "PAQUETE 6 DECLARACIONES") maxMeses = 6 * cantidadActual;
+else if (productoSeleccionado === "PAQUETE 8 DECLARACIONES") maxMeses = 8 * cantidadActual;
+else if (productoSeleccionado === "PAQUETE 10 DECLARACIONES") maxMeses = 10 * cantidadActual;
+else if (productoSeleccionado === "PAQUETE ANUAL 1 o 2 APPS") maxMeses = 12 * cantidadActual;
 
   // 🟢 Permitimos cruzar año mientras sea válido
   if (diferenciaMeses <= 0) {
@@ -2139,6 +2146,7 @@ document.querySelectorAll("#tablaServicios tbody tr").forEach(tr => {
 </script>
 </body>
 </html>
+
 
 
 
